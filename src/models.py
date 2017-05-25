@@ -1,5 +1,6 @@
 
 import uuid
+from Crypto.PublicKey import RSA
 from google.appengine.ext import ndb
 from google.appengine.api import users
 
@@ -95,27 +96,74 @@ class Person(ndb.Model):
         self.put()
 
 
+    def add_new_entity(self, **kwargs):
+        entity = Entity.create(self.key, **kwargs)
+        return entity
+
+
     name = property(get_name, set_name)
     email = property(get_email, set_email)
     google_id = property(get_google_id)
 
 
+class ConfigFile(ndb.Model):
+
+    text = ndb.TextProperty()
+    path = ndb.StringProperty()
+    owner = ndb.StringProperty()
+    mod = ndb.StringProperty()
+
 
 class Entity(ndb.Model):
 
-    public_key = ndb.StringProperty()
-    private_key = ndb.StringProperty()
-
-    def add_info(self):
-        info = EntityInfo(parent=self.key)
-        info.put()
-
-
-class EntityInfo(ndb.Model):
-
-    name = ndb.StringProperty(indexed=True)
+    name = ndb.StringProperty()
     short_description = ndb.StringProperty()
-    long_description = ndb.StringProperty()
+    long_description = ndb.TextProperty()
     url = ndb.StringProperty()
     image_url = ndb.StringProperty()
+
     created = ndb.DateTimeProperty(auto_now_add=True)
+    person_key = ndb.KeyProperty(kind="Person", required=True)
+    public_key = ndb.TextProperty()
+    private_key = ndb.TextProperty()
+
+    config = ndb.StructuredProperty(ConfigFile, repeated=True)
+
+
+    def add_config_file(self, text, path, owner, mod):
+        config_file = ConfigFile(text=text, path=path, owner=owner, mod=mod)
+        self.config.append(config_file)
+        self.put()
+
+
+    def remove_config_file(self, index):
+        del self.config[index]
+        self.put()
+
+
+    @classmethod
+    def create(cls, person_key, **kwargs):
+
+        key = RSA.generate(4096)
+        pubkey = key.publickey()
+
+        private_key = key.exportKey('PEM')
+        public_key = pubkey.exportKey('OpenSSH')
+
+        entity_uuid = str(uuid.uuid3(uuid.NAMESPACE_DNS, REGISTRY_DOMAIN))
+        entity = cls(id=entity_uuid,
+                     person_key=person_key,
+                     private_key=private_key,
+                     public_key=public_key,
+                     **kwargs)
+        entity.put()
+
+        return entity
+
+
+
+
+
+
+
+

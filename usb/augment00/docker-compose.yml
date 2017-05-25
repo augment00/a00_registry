@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+
+  bootstrap:
+    container_name: bootstrap
+    image: paulharter/augment00-bootstrap:latest
+    env_file: augment00.env
+    restart: always
+    hostname: test.augment00.org

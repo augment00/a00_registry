@@ -4,7 +4,7 @@ from google.appengine.api import memcache
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
-from models import Person, Entity, EntityInfo, Name
+from models import Person, Entity, Name
 
 
 class ModelsTestCase(unittest.TestCase):
@@ -87,25 +87,46 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
         # using ndb.get_context().set_cache_policy(False)
         ndb.get_context().clear_cache()
 
+
     def tearDown(self):
         self.testbed.deactivate()
+
 
     def testFindByEmail(self):
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
         found = Person.withEmail("paul@glowinthedark.co.uk")
         self.assertEqual(found.name, "paul")
 
+
     def testFindByName(self):
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
         found = Person.withName("paul")
         self.assertEqual(found.name, "paul")
+
 
     def testFindByGoogleId(self):
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
         found = Person.withGoogleId("123456789")
         self.assertEqual(found.name, "paul")
 
+
     def testFindByGoogleIdNotExisting(self):
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
         found = Person.withGoogleId("asdfghjk")
         self.assertTrue(found is None)
+
+
+    def testAddNewEntity(self):
+        person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
+        entity = person.add_new_entity(name="elephant")
+
+
+    def testAddConfigFile(self):
+        person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
+        entity = person.add_new_entity(name="elephant")
+        entity.add_config_file("test text", "/etc/thing/config.py", "owner", "755")
+        self.assertTrue(len(entity.config) == 1)
+        self.assertEqual(entity.config[0].text, "test text")
+        entity.add_config_file("another test text", "/etc/thing/config.py", "me", "755")
+        self.assertTrue(len(entity.config) == 2)
+
