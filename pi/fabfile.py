@@ -10,7 +10,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SUB_DOMAIN = "test"
 PI_PASSWORD = "password"
 
-env.hosts = ["%s:%s" % ("raspberrypi.local", 22)]
+env.hosts = ["%s:%s" % ("test.local", 22)]
 env.user = "pi"
 env.password = PI_PASSWORD
 
@@ -25,7 +25,7 @@ def update():
     change_password()
     # change_host_name()
     change_graphics_memory()
-    add_wifi()
+    add_stuff()
 
 
 def change_host_name():
@@ -37,16 +37,20 @@ def change_graphics_memory():
     sudo('echo "gpu_mem=16" >> /boot/config.txt')
 
 
-def add_wifi():
+def add_stuff():
     sudo("mkdir -p /opt/augment00")
     put("setup_wifi.py", "/opt/augment00/setup_wifi.py", use_sudo=True)
-    sudo("python /opt/augment00/setup_wifi.py")
+    put("start.sh", "/opt/augment00/start.sh", use_sudo=True)
+    sudo("chmod 755 /opt/augment00/start.sh")
     sudo ("rm /etc/rc.local")
     put("rc.local", "/etc/rc.local", use_sudo=True)
     sudo("chmod 755 /etc/rc.local")
 
 
 def install_docker():
-    run("curl -sSL get.docker.com | sh")
-    run("sudo systemctl enable docker")
-    run("sudo usermod -aG docker pi")
+    # run("curl -sSL get.docker.com | sh")
+    # run("sudo systemctl enable docker")
+    # run("sudo usermod -aG docker pi")
+    sudo("apt-get -y install python-pip")
+    sudo("pip install docker-compose")
+

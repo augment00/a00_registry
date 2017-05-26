@@ -14,7 +14,7 @@ def mount_usb():
 
 
 def get_creds():
-    wifi_path = os.path.join(MOUNT_DIR, "wifi.json")
+    wifi_path = os.path.join(MOUNT_DIR, "augment00", "wifi.json")
     if os.path.exists(wifi_path):
         with open(wifi_path) as f:
             wifi_json = json.loads(f.read())
