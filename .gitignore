@@ -1,5 +1,6 @@
 
 usb_local/
+*config_local.py
 
 # osx
 .DS_Store
