@@ -1,37 +1,30 @@
-# a00_registry
-Web app registry service for the augment00 project
+# Augment00 Registry
 
+There are several distinct bits of code here (I will probably split them out soon).
 
-## Run Locally
-1. Install the [App Engine Python SDK](https://developers.google.com/appengine/downloads).
-See the README file for directions. You'll need python 2.7 and [pip 1.4 or later](http://www.pip-installer.org/en/latest/installing.html) installed too.
+There is a registry web app where all clients are registered.
+This provides both the source of truth for info about clients and a file based configuration service to bootstrap and configure clients.
+There are scripts to build the SD card that goes in the Raspberry Pis and some sample USB configuration files.
 
-2. Clone this repo with
+The plan is that all clients are plug-and-play with a USB attached to each desk that provides minimal credentials and configuration.
+The Raspberry Pis will be given a base images on sd cards that has just jessie lite, docker/compose and a simple startup script.
+All applications are to be downloaded as docker images and all further configuration pulled from the regisrty service.
+This will make possible:
 
-   ```
-   git clone git@github.com:augment00/a00_registry.git
-   ```
-3. Install dependencies in the project's lib directory.
-   Note: App Engine can only import libraries from inside your project directory.
+- Plug-and-play provisioning without the need for keyboards/screen etc
+- Over the air updating of both code and configuration
+- Simple ongoing support and maintenance
 
-   ```
-   cd a00_registry/src
-   pip install -r requirements.txt -t lib
-   ```
-4. Run this project locally from the command line:
+## Registry
 
-   ```
-   dev_appserver.py .
-   ```
+The registry app is a Google App Engine app that provides the core registration and configuration services used by Augment00 clients.
+This is in the src folder and the readme is here [src/readme.md](src/readme.md)
 
-Visit the application [http://localhost:8080](http://localhost:8080)
+## Raspberry Pi
 
-See [the development server documentation](https://developers.google.com/appengine/docs/python/tools/devserver)
-for options when running dev_appserver.
+Augment00 uses Raspberry Pis as its main processors in clients. scripts for building prepared SD cards and docker images are ing the pi
+folder and the readme in here [pi/readme.md](pi/readme.md)
 
-## Deploy
-To deploy the application:
+## USB configuration
 
-1. install gcloud command line tools [https://cloud.google.com/sdk/downloads](https://cloud.google.com/sdk/downloads)
-
-2. from a00_registry/src run:  `gcloud --project=project00-msme app deploy`
+There is an example set of configuration files in the usb folder
