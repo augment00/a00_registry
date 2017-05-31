@@ -18,7 +18,7 @@ This will make possible:
 ## Registry
 
 The registry app is a Google App Engine app that provides the core registration and configuration services used by Augment00 clients.
-This is in the src folder and the readme is here [src/readme.md](src/readme.md)
+This is in the src folder and the readme is here [src/README.md](src/README.md)
 
 ## Raspberry Pi
 
