@@ -72,12 +72,12 @@ def verify(message, signature, pub_key):
     digest.update(message)
     return signer.verify(digest, signature)
 
-def sign_url(url, private_pem, salt):
+def sign_url(url, private_pem, salt=""):
     private_key = importKey(private_pem)
     msg = "%s%s" % (url, salt)
     return b64encode(sign(msg, private_key, "SHA-256"))
 
-def verify_sig(url, signature, public_openssh, salt):
+def verify_sig(url, signature, public_openssh, salt=""):
 
     public_key = importKey(public_openssh)
     msg = "%s%s" % (url, salt)
