@@ -1,0 +1,84 @@
+body {
+    padding-top: 70px;
+}
+
+.row{
+    padding-top: 10px;
+}
+
+h3{
+    margin-top: 0px;
+    margin-bottom: 0px;
+    display: inline-block;
+    font-size: 22px;
+}
+
+h4.heading-title{
+    margin-top: 0px;
+    margin-bottom: 0px;
+    display: inline-block;
+    font-size: 18px;
+}
+
+.heading-anchor{
+    position: relative;
+    top: 3px;
+    float: right;
+    padding-left: 15px;
+}
+
+.heading-anchor-big{
+    position: relative;
+    top: -1px;
+    float: right;
+    padding-left: 20px;
+    font-size: 2.2rem;
+}
+
+.rsa_key{
+    border-width: thin;
+    font-family: 'Ubuntu Mono', sans-serif;
+}
+
+pre{
+    padding-left: 25px;
+    padding-right: 25px;
+    background-color: white;
+    border-width: 0px;
+}
+
+.modal-footer>.btn{
+    margin-right:20px;
+}
+
+#editor {
+    width: 100%;
+    height: 400px;
+}
+
+#ace-holder{
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-width: thin;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: lightgrey;
+    overflow: hidden;
+}
+
+#current_file_text{
+    visibility: hidden;
+}
+
+.navbar-right{
+    margin-top: 15px;
+    margin-left: 2px;
+}
+
+ol {
+    list-style-type: disc;
+}
+
+form{
+    margin-bottom: 20px;
+}

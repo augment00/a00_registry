@@ -1,0 +1,4 @@
+
+
+class NonUniqueException(Exception):
+    pass

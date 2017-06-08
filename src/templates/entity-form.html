@@ -1,0 +1,18 @@
+{% import '_formhelpers.html' as formhelpers %}
+
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="row">
+    <!-- Item -->
+    <div class="col-md-6">
+        {{ formhelpers.render_form(form, action_url=action_url, action_text="Save") }}
+    </div>
+
+</div>
+
+
+
+
+{% endblock %}
+

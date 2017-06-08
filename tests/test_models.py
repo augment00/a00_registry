@@ -1,10 +1,12 @@
 import unittest
+import json
 
 from google.appengine.api import memcache
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
 from models import Person, Entity, Name
+import keys
 
 
 class ModelsTestCase(unittest.TestCase):
@@ -94,25 +96,25 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
 
     def testFindByEmail(self):
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
-        found = Person.withEmail("paul@glowinthedark.co.uk")
+        found = Person.with_email("paul@glowinthedark.co.uk")
         self.assertEqual(found.name, "paul")
 
 
     def testFindByName(self):
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
-        found = Person.withName("paul")
+        found = Person.with_name("paul")
         self.assertEqual(found.name, "paul")
 
 
     def testFindByGoogleId(self):
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
-        found = Person.withGoogleId("123456789")
+        found = Person.with_google_id("123456789")
         self.assertEqual(found.name, "paul")
 
 
     def testFindByGoogleIdNotExisting(self):
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
-        found = Person.withGoogleId("asdfghjk")
+        found = Person.with_google_id("asdfghjk")
         self.assertTrue(found is None)
 
 
@@ -121,12 +123,101 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
         entity = person.add_new_entity(name="elephant")
 
 
-    def testAddConfigFile(self):
+    def testpersonEntities(self):
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
         entity = person.add_new_entity(name="elephant")
-        entity.add_config_file("test text", "/etc/thing/config.py", "owner", "755")
+        entities = person.entities
+        self.assertTrue(len(entities) == 1)
+
+
+    def testAddConfigFile(self):
+        person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
+        entity, private_key = person.add_new_entity(name="elephant")
+
+        config_file = person.add_config_file("test", "a whole bunch of text", "a/path/file.txt")
+
+        entity.add_config_file(config_file)
         self.assertTrue(len(entity.config) == 1)
-        self.assertEqual(entity.config[0].text, "test text")
-        entity.add_config_file("another test text", "/etc/thing/config.py", "me", "755")
+        self.assertEqual(entity.config[0].get().text, "a whole bunch of text")
+        entity.add_config_file(config_file)
+        self.assertTrue(len(entity.config) == 1)
+
+        config_file_2 = person.add_config_file("test2", "another a whole bunch of text", "a/path/file.txt")
+        entity.add_config_file(config_file_2)
         self.assertTrue(len(entity.config) == 2)
 
+        configs = person.configs
+        self.assertTrue(len(configs) == 2)
+
+
+    def testRemoveConfigFile(self):
+        person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
+        entity, private_key = person.add_new_entity(name="elephant")
+
+        config_file = person.add_config_file("test", "a whole bunch of text", "a/path/file.txt")
+
+        entity.add_config_file(config_file)
+        self.assertTrue(len(entity.config) == 1)
+        self.assertEqual(entity.config[0].get().text, "a whole bunch of text")
+        entity.add_config_file(config_file)
+        self.assertTrue(len(entity.config) == 1)
+
+        config_file_2 = person.add_config_file("test2", "another a whole bunch of text", "a/path/file.txt")
+        entity.add_config_file(config_file_2)
+        self.assertTrue(len(entity.config) == 2)
+        entity.remove_config_file(config_file_2)
+        self.assertTrue(len(entity.config) == 1)
+
+
+    def test_signing(self):
+
+        person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
+        entity, private_pem = person.add_new_entity(name="elephant")
+        url = "https://augment00.org/entity/12345678"
+        salt = "asdfghjkl"
+        sig = keys.sign_url(url, private_pem, salt)
+        mine = keys.verify_sig(url, sig, entity.public_key, salt)
+        self.assertTrue(mine)
+
+
+    def test_signing_fails(self):
+
+        person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
+        entity, private_pem = person.add_new_entity(name="elephant")
+        url = "https://augment00.org/entity/12345678"
+        salt = "asdfghjkl"
+        sig = keys.sign_url(url, private_pem, salt)
+        mine = keys.verify_sig(url, sig, entity.public_key, "123456")
+        self.assertFalse(mine)
+
+
+    def test_entity_json(self):
+
+        person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
+        entity, private_pem = person.add_new_entity(name="elephant")
+        config_file = person.add_config_file("test", "A whole bunch of text\nwith a line return", "a/path/file.txt")
+        entity.add_config_file(config_file)
+        as_json = entity.as_json()
+
+        as_json_string = json.dumps(entity.as_json(), indent=4)
+
+        loaded = json.loads(as_json_string)
+
+        self.assertEqual(loaded["config"][0]["text"], "A whole bunch of text\nwith a line return")
+
+
+    def test_config_templating(self):
+
+        person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
+        entity, private_pem = person.add_new_entity(name="elephant")
+        config_file = person.add_config_file("test", "A whole bunch of text\nwith uuid {{ uuid }}", "a/path/file.txt")
+        entity.add_config_file(config_file)
+        as_json = entity.as_json()
+
+        as_json_string = json.dumps(entity.as_json(), indent=4)
+
+        loaded = json.loads(as_json_string)
+
+        self.assertEqual(loaded["config"][0]["text"], "A whole bunch of text\nwith uuid %s" % entity.key.id())
+
+        self.fail(loaded["config"][0]["text"])

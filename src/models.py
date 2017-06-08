@@ -3,8 +3,11 @@ import uuid
 from Crypto.PublicKey import RSA
 from google.appengine.ext import ndb
 from google.appengine.api import users
+import keys
+from base64 import b64encode, b64decode
+from jinja2 import Template
 
-
+from augment_exceptions import NonUniqueException
 from constants import *
 
 
@@ -31,7 +34,7 @@ class Person(ndb.Model):
         name_key = cls._new_unique_key(Name, name)
         email_key = cls._new_unique_key(Email, email)
         google_id_key = cls._new_unique_key(GoogleId, google_id)
-        person_uuid = str(uuid.uuid3(uuid.NAMESPACE_DNS, REGISTRY_DOMAIN))
+        person_uuid = str(uuid.uuid4())
         person = cls(name_key=name_key, email_key=email_key, google_id_key=google_id_key, id=person_uuid)
         person.put()
         return person
@@ -52,17 +55,17 @@ class Person(ndb.Model):
         return self.google_id_key.id()
 
     @classmethod
-    def withEmail(cls, email):
+    def with_email(cls, email):
         key = ndb.Key(Email, email)
         return cls.query(cls.email_key == key).get()
 
     @classmethod
-    def withName(cls, name):
+    def with_name(cls, name):
         key = ndb.Key(Name, name)
         return cls.query(cls.name_key == key).get()
 
     @classmethod
-    def withGoogleId(cls, google_id):
+    def with_google_id(cls, google_id):
         key = ndb.Key(GoogleId, google_id)
         return cls.query(cls.google_id_key == key).get()
 
@@ -73,7 +76,7 @@ class Person(ndb.Model):
         existing_attribute_obj = new_attribute_key.get()
 
         if existing_attribute_obj is not None:
-            raise Exception("The value %s for %s is adready in use" % (new_value, attribute_class))
+            raise NonUniqueException("The value %s for %s is adready in use" % (new_value, attribute_class))
         else:
             new_attribute_obj = attribute_class(key=new_attribute_key)
             new_attribute_obj.put()
@@ -97,8 +100,38 @@ class Person(ndb.Model):
 
 
     def add_new_entity(self, **kwargs):
-        entity = Entity.create(self.key, **kwargs)
-        return entity
+        entity, private_key = Entity.create(self.key, **kwargs)
+        return entity, private_key
+
+
+    @property
+    def entities(self):
+        return [e for e in Entity.query(Entity.person_key == self.key).iter()]
+
+    @property
+    def configs(self):
+        return [c for c in ConfigFile.query(ancestor=self.key).iter()]
+
+
+    def remove(self):
+        ndb.delete_multi(ConfigFile.query(ancestor=self.key).iter(keys_only=True))
+        ndb.delete_multi(Entity.query(Entity.person_key == self.key).iter(keys_only=True))
+        self.name_key.delete()
+        self.email_key.delete()
+        self.google_id_key.delete()
+        self.key.delete()
+
+    def add_config_file(self, name, text, path):
+
+        config_uuid = str(uuid.uuid4())
+
+        config_file = ConfigFile(id=config_uuid,
+                                 parent=self.key,
+                                 name=name,
+                                 text=text,
+                                 path=path)
+        config_file.put()
+        return config_file
 
 
     name = property(get_name, set_name)
@@ -108,57 +141,85 @@ class Person(ndb.Model):
 
 class ConfigFile(ndb.Model):
 
+    name = ndb.StringProperty()
     text = ndb.TextProperty()
     path = ndb.StringProperty()
-    owner = ndb.StringProperty()
-    mod = ndb.StringProperty()
+
+    def as_json(self, entity_uuid):
+
+        template = Template(self.text)
+
+        return {
+            "text": template.render(uuid=entity_uuid),
+            "path": self.path
+        }
 
 
 class Entity(ndb.Model):
 
     name = ndb.StringProperty()
-    short_description = ndb.StringProperty()
-    long_description = ndb.TextProperty()
-    url = ndb.StringProperty()
-    image_url = ndb.StringProperty()
-
+    description = ndb.TextProperty()
     created = ndb.DateTimeProperty(auto_now_add=True)
     person_key = ndb.KeyProperty(kind="Person", required=True)
     public_key = ndb.TextProperty()
-    private_key = ndb.TextProperty()
 
-    config = ndb.StructuredProperty(ConfigFile, repeated=True)
+    config = ndb.KeyProperty(ConfigFile, repeated=True)
 
 
-    def add_config_file(self, text, path, owner, mod):
-        config_file = ConfigFile(text=text, path=path, owner=owner, mod=mod)
-        self.config.append(config_file)
+    def as_json(self):
+
+        return {
+            "name": self.name,
+            "description": self.description,
+            "created": str(self.created),
+            "person_key": self.person_key.id(),
+            "public_key": self.public_key,
+            "config": [c.get().as_json(self.key.id()) for c in self.config]
+        }
+
+    @property
+    def config_files(self):
+        configs = [c.get() for c in self.config]
+        print configs
+        return configs
+
+    def add_config_file(self, config_file):
+        key = config_file.key
+        if not key in self.config:
+            self.config.append(key)
+            self.put()
+
+
+    def remove_config_file(self, config_file):
+        key = config_file.key
+        if key in self.config:
+            self.config.remove(key)
+            self.put()
+
+
+    def regenerate_keys(self):
+        public, private = keys.newkeys(2048)
+        private_key = private.exportKey('PEM')
+        self.public_key = public.exportKey('PEM')
         self.put()
 
-
-    def remove_config_file(self, index):
-        del self.config[index]
-        self.put()
-
+        return private_key
 
     @classmethod
     def create(cls, person_key, **kwargs):
 
-        key = RSA.generate(4096)
-        pubkey = key.publickey()
+        public, private = keys.newkeys(2048)
+        private_key = private.exportKey('PEM')
+        public_key = public.exportKey('PEM')
 
-        private_key = key.exportKey('PEM')
-        public_key = pubkey.exportKey('OpenSSH')
-
-        entity_uuid = str(uuid.uuid3(uuid.NAMESPACE_DNS, REGISTRY_DOMAIN))
+        entity_uuid = str(uuid.uuid4())
         entity = cls(id=entity_uuid,
                      person_key=person_key,
-                     private_key=private_key,
                      public_key=public_key,
                      **kwargs)
         entity.put()
 
-        return entity
+        return entity, private_key
 
 
 

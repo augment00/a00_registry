@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block body %}
+
+
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>{{ config.name }}</h3>
+                <div class="heading-anchor">
+                    <a href="/config/{{ config.key.id() }}/update">
+                        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> edit
+                    </a>
+                </div>
+                <div class="heading-anchor">
+                    <a href="#" data-toggle="modal" data-target="#confirm-delete">
+                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> delete
+                    </a>
+                </div>
+
+                <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="heading-title">Delete {{ title }}</h4>
+                            </div>
+                            <div class="modal-body">
+                                This can't be undone. Are you really sure?
+                            </div>
+                            <div class="modal-footer">
+                                <form class="inline-form" action="/config/{{ config.key.id() }}/delete" method="post">
+                                    <button type="submit" class="btn btn-danger btn-ok pull-right">Delete</button>
+                                </form>
+                                <button type="button" class="btn btn-default pull-right" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <table class="table">
+                <tr>
+                    <td>path:</td>
+                    <td>/etc/opt/augment00/{{ config.path }}</td>
+                </tr>
+            </table>
+            <div id="editor"></div>
+        </div>
+        <div id="current_file_text">{{ config.text }}</div>
+    </div>
+        <div class="col-md-6">
+
+        </div>
+</div>
+    <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script>
+        var editor = ace.edit("editor");
+        var file_text = document.getElementById("current_file_text");
+        console.log(file_text.textContent);
+        editor.setTheme("ace/theme/dawn");
+        editor.getSession().setMode("ace/mode/python");
+        editor.setValue(file_text.textContent, -1);
+        editor.setReadOnly(true);
+    </script>
+{% endblock %}

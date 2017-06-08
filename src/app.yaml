@@ -4,6 +4,20 @@ threadsafe: yes
 
 handlers:
 
+- url: /admin/.*
+  script: admin.app
+  login: admin
+
+
+- url: /api/.*
+  script: api.app
+
+
+- url: /(person|entity|config)/.*
+  script: account.app
+  login: required
+
+
 - url: /.*
   script: main.app
 

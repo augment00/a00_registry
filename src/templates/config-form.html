@@ -1,0 +1,35 @@
+{% import '_formhelpers.html' as formhelpers %}
+
+{% extends "layout.html" %}
+{% block body %}
+
+    <div class="row">
+        <div class="col-md-6">
+            {{ formhelpers.render_form(form, action_url=action_url, action_text="Save") }}
+            <p>You can add the following templated values using mustache style curly brackets eg. {{ "{{ uuid }}" }}</p>
+            <ol>
+                <li><b>uuid</b> - will add the entities uuid</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script>
+        var ace_div = document.createElement("div");
+        var ace_holder_div = document.createElement("div");
+        ace_div.id = "editor";
+        ace_holder_div.id = "ace-holder";
+        ace_holder_div.appendChild(ace_div);
+        var file_text = document.getElementById("file_text");
+        file_text.parentNode.insertBefore(ace_holder_div, file_text);
+        var editor = ace.edit("editor");
+
+        editor.setTheme("ace/theme/dawn");
+        editor.getSession().setMode("ace/mode/python");
+        editor.setValue(file_text.value, -1);
+        editor.getSession().on('change', function(e){
+            file_text.value = editor.getValue();
+        });
+    </script>
+{% endblock %}
+

@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="row">
+    <!-- Item -->
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>{{ person.name }}</h3>
+
+                <div class="heading-anchor">
+                    <a href="/person/update">
+                        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> edit
+                    </a>
+                </div>
+                <div class="heading-anchor">
+                    <a href="#" data-toggle="modal" data-target="#confirm-delete">
+                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> delete
+                    </a>
+                </div>
+
+                <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="heading-title">Delete {{ title }}</h4>
+                            </div>
+                            <div class="modal-body">
+                                This can't be undone. Are you really sure?
+                            </div>
+                            <div class="modal-footer">
+                                <form class="inline-form" action="/person/delete" method="post">
+                                    <button type="submit" class="btn btn-danger btn-ok pull-right">Delete</button>
+                                </form>
+                                <button type="button" class="btn btn-default pull-right" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <table class="table">
+                <tr>
+                    <td>email: </td>
+                    <td>{{ person.email }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="heading-title">entities</h4>
+                <div class="heading-anchor-big">
+                    <a href="/entity/new">
+                        <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+                    </a>
+                </div>
+            </div>
+            <table class="table">
+                {% for entity in person.entities %}
+                <tr>
+                    <td class="vmiddle item-title"><a href="/entity/{{ entity.key.id() }}">{{ entity.name }}</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="heading-title">configuration files</h4>
+                <div class="heading-anchor-big">
+                    <a href="/config/new">
+                        <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+                    </a>
+                </div>
+            </div>
+            <table class="table">
+                {% for config in person.configs %}
+                <tr>
+                    <td class="vmiddle item-title"><a href="/config/{{ config.key.id() }}">{{ config.name }}</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
