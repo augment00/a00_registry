@@ -1,6 +1,5 @@
 #!/bin/sh -e
 
-(sleep 2; python /opt/augment00/setup_wifi.py)&
-(sleep 4; /opt/augment00/start.sh)&
+(sleep 2; /opt/augment00/start.sh)&
 
 exit 0

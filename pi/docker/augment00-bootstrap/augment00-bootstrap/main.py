@@ -2,23 +2,33 @@
 import random
 from urlparse import urlparse
 import keys
+import wifi
 import urllib
 import os
 import json
-import requests
 import shutil
 import subprocess
 from pwd import getpwnam
+
+import requests
 
 ALPHA_NUMERIC = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 MOUNT_DIR = "/mnt/usb"
 USB_CONFIG_FOLDER = os.path.join(MOUNT_DIR, "augment00")
-AUGMENT00_CREDS_PATH = os.path.join(USB_CONFIG_FOLDER, "augment00.json")
-CONFIG_DIR = "/etc/opt/augemnt00"
+AUGMENT00_CREDS_PREFIX = "augment00_creds"
+INSTALLED_CREDS_PATH = "/etc/opt/augment00/augment00_creds.json"
+CONFIG_DIR = "/etc/opt/augment00"
+
 CONFIG_OWNER = "pi"
 DOCKER_COMPOSE_FILEPATH = os.path.join(CONFIG_DIR, "docker-compose.yml")
 
+
+def mount_usb():
+    if not os.path.exists(MOUNT_DIR):
+        os.makedirs(MOUNT_DIR)
+    cmd = "mount /dev/sda1 /mnt/usb"
+    subprocess.call(cmd, shell=True)
 
 def generateNewRandomAlphaNumeric(length):
     random.seed()
@@ -28,34 +38,50 @@ def generateNewRandomAlphaNumeric(length):
     return "".join(values)
 
 
-def run_docker_compose():
+def get_serial():
+  # Extract serial from cpuinfo file
+  cpu_serial = "0000000000000000"
+  try:
+    f = open('/proc/cpuinfo','r')
+    for line in f:
+      if line[0:6]=='Serial':
+          cpu_serial = line[10:26]
+    f.close()
+  except:
+      cpu_serial = "ERROR000000000"
 
-    if os.path.exists(DOCKER_COMPOSE_FILEPATH):
-        cmd = "docker-compose -f %s pull" % DOCKER_COMPOSE_FILEPATH
-        subprocess.call(cmd, shell=True)
-        cmd = "docker-compose up -f %s -d --force-recreate --remove-orphans" % DOCKER_COMPOSE_FILEPATH
-        subprocess.call(cmd, shell=True)
-
+  return cpu_serial
 
 
 def update_config():
 
-    if not os.path.exists(AUGMENT00_CREDS_PATH):
+    if not os.path.exists(CONFIG_DIR):
+        os.makedirs(CONFIG_DIR)
+
+    creds_path = None
+
+    for filename in os.listdir(USB_CONFIG_FOLDER):
+        if filename.startswith(AUGMENT00_CREDS_PREFIX):
+            creds_path = os.path.join(USB_CONFIG_FOLDER, filename)
+
+    if creds_path is None:
         return
 
-    with open(AUGMENT00_CREDS_PATH, "r") as f:
+    with open(creds_path, "r") as f:
         creds = json.loads(f.read())
 
     url = config_url(creds)
     rsp = requests.get(url)
 
-    if rsp.status_code == 200:
-        if os.path.exists(CONFIG_DIR):
-            shutil.rmtree(CONFIG_DIR)
-        os.makedirs(CONFIG_DIR)
-        config = rsp.json()
-        write_config_files(config, CONFIG_DIR, CONFIG_OWNER, 0755)
 
+    if rsp.status_code == 409:
+        print "Error: another device is using this key already"
+        return
+
+    if rsp.status_code == 200:
+        config = rsp.json()
+        write_config_files(config["config"], CONFIG_DIR, CONFIG_OWNER, 0755)
+        # shutil.copy(creds_path, INSTALLED_CREDS_PATH)
 
 
 def write_config_files(config, base_dir, owner, mode):
@@ -72,24 +98,24 @@ def write_config_files(config, base_dir, owner, mode):
         with open(dst_file_path, "w") as f:
             f.write(config_file["text"])
         os.chmod(dst_file_path, mode)
-        uid = getpwnam(owner).pw_uid
-        gid = getpwnam(owner).pw_gid
-        os.chown(dst_file_path, uid, gid)
+        # uid = getpwnam(owner).pw_uid
+        # gid = getpwnam(owner).pw_gid
+        # os.chown(dst_file_path, uid, gid)
 
 
 def config_url(creds):
+    cpu_serial = get_serial()
     src_url = creds["url"]
     private_pem = creds["private_key"]
     parsed = urlparse(src_url)
     nonced_path = "%s/%s" % (parsed.path, generateNewRandomAlphaNumeric(20))
     sig = keys.sign_url(nonced_path, private_pem)
-    query = urllib.urlencode({"sig": sig})
+    query = urllib.urlencode({"sig": sig, "serial": cpu_serial})
     url = "%s://%s%s?%s" % (parsed.scheme, parsed.netloc, nonced_path, query)
     return url
 
 
-
-
 if __name__ == '__main__':
+    print "running augment00 bootstrap"
+    mount_usb()
     update_config()
-    run_docker_compose()

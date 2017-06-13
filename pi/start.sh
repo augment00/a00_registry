@@ -1,9 +1,6 @@
 #!/bin/sh
 
-mkdir -p /opt/augment00/secrets
-cp /mnt/usb/augment00/docker-compose.yml /opt/augment00/docker-compose.yml
-cp /mnt/usb/augment00/augment00.env /opt/augment00/augment00.env
-cp /mnt/usb/augment00/google_creds.json /opt/augment00/secrets/google_creds.json
-cd /opt/augment00
-docker-compose pull
-docker-compose up
+python /opt/augment00/wifi.py
+docker run --privileged -v /etc/opt/augment00:/etc/opt/augment00 --rm paulharter/augment00-bootstrap:latest
+docker-compose -f /etc/opt/augment00/docker-compose.yml pull
+docker-compose -f /etc/opt/augment00/docker-compose.yml up -d --force-recreate

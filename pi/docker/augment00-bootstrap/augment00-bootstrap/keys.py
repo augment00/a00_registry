@@ -1,20 +1,17 @@
 
 """
-from:
-
-https://gist.github.com/dennislwy/0194036234445776d48ad2fb594457d4
+from: https://gist.github.com/dennislwy/0194036234445776d48ad2fb594457d4
 
 With thanks to Dennis Lee
 """
 
-
+from base64 import b64encode, b64decode
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA512, SHA384, SHA256, SHA, MD5
 from Crypto import Random
-from base64 import b64encode, b64decode
 
 hash = "SHA-256"
 

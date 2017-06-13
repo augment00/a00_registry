@@ -10,17 +10,21 @@ env.hosts = ["%s:%s" % ("raspberrypi.local", 22)]
 env.user = "pi"
 env.password = PI_PASSWORD
 
-BASE_VERSION = "0.0.1"
 BOOTSTRAP_VERSION = "0.0.1"
+PYTHON_VERSION = "0.0.1"
+TEST_VERSION = "0.0.1"
+DESKCONTROL_VERSION = "0.0.1"
 
 JESSIE_VERSION = "2017-04-10-raspbian-jessie-lite"
 
 
 ############################################################################
-##              Preparing the base disc image from jessie lite            ##
+##              Preparing the base disc image from JESSIE_VERSION
 ############################################################################
 
 """
+    before you can prepare the card you have to connect to your pi. Login and then:
+
     "sudo su"
     'wpa_passphrase "Container 20" "eggandchips" >> /etc/wpa_supplicant/wpa_supplicant.conf'
     "wpa_cli reconfigure"
@@ -30,38 +34,36 @@ JESSIE_VERSION = "2017-04-10-raspbian-jessie-lite"
     Interfacing Options > SSH > Yes
 
     reboot
-
 """
 
 
 def prepare_card():
-    _change_password()
+    change_password()
     _change_graphics_memory()
-    _add_start_scripts()
-    _install_docker()
+    install_docker()
+    _add_bootstrap()
+    sudo("reboot")
 
 
-def _change_password():
+def change_password():
     env.password = "raspberry"
     crypted_password = crypt(PI_PASSWORD, 'salt')
     sudo('usermod --password %s %s' % (crypted_password, env.user), pty=False)
-
-
-# def change_host_name():
-#     sudo("sed -i 's/raspberrypi/raspberrypi.augment00.org/g' /etc/hosts")
-#     sudo("sed -i 's/raspberrypi/raspberrypi.augment00.org/g' /etc/hostname")
 
 
 def _change_graphics_memory():
     sudo('echo "gpu_mem=16" >> /boot/config.txt')
 
 
-def _add_start_scripts():
+def _add_bootstrap():
 
+    build_bootstrap()
     sudo("mkdir -p /opt/augment00")
-    put("setup_wifi.py", "/opt/augment00/setup_wifi.py", use_sudo=True)
     put("start.sh", "/opt/augment00/start.sh", use_sudo=True)
     sudo("chmod 755 /opt/augment00/start.sh")
+
+    put("wifi.py", "/opt/augment00/wifi.py", use_sudo=True)
+    sudo("chmod 755 /opt/augment00/wifi.py")
 
     ## add our own rc.local
     sudo("rm /etc/rc.local")
@@ -71,8 +73,14 @@ def _add_start_scripts():
     sudo("chgrp root /etc/rc.local")
 
 
+def build_bootstrap():
+    tag = BOOTSTRAP_VERSION
+    put("docker", "~")
+    sudo('docker build --no-cache=true -t="paulharter/augment00-bootstrap:%s" docker/augment00-bootstrap' % tag)
+    sudo('docker tag paulharter/augment00-bootstrap:%s paulharter/augment00-bootstrap:latest' % tag)
 
-def _install_docker():
+
+def install_docker():
 
     # install docker
     run("curl -sSL get.docker.com | sh")
@@ -87,41 +95,41 @@ def _install_docker():
     sudo("apt-get -y install python-pip")
     sudo("pip install docker-compose")
 
-    # adds a copy of the docker.service file with the additional path for GOOGLE_APPLICATION_CREDENTIALS
-    put("docker.service", "/lib/systemd/system/docker.service", use_sudo=True)
-    sudo("chmod 644 /lib/systemd/system/docker.service")
-    sudo("chown root /lib/systemd/system/docker.service")
-    sudo("chgrp root /lib/systemd/system/docker.service")
-
-
 
 ############################################################################
-##              Docker commands for building images                       ##
+##              Docker commands for building other images                       ##
 ############################################################################
+
 
 def docker_login(password):
     sudo ('docker login -u paulharter -p %s' % password)
 
 
-def build_base():
-    tag = BASE_VERSION
-    put("docker", "~")
-    sudo('docker build --no-cache=true -t="paulharter/augment00-bootstrap-base:%s" docker/bootstrap-base' % tag)
-    sudo('docker push paulharter/augment00-bootstrap-base:%s' % tag)
-    sudo('docker tag paulharter/augment00-bootstrap-base:%s paulharter/augment00-bootstrap-base:latest' % tag)
-    sudo('docker push paulharter/augment00-bootstrap-base:latest')
+def build_python():
+    tag = PYTHON_VERSION
+    # put("docker", "~")
+    # sudo('docker build --no-cache=true -t="paulharter/augment00-python:%s" docker/augment00-python' % tag)
+    sudo('docker push paulharter/augment00-python:%s' % tag)
+    sudo('docker tag paulharter/augment00-python:%s paulharter/augment00-python:latest' % tag)
+    sudo('docker push paulharter/augment00-python:latest')
 
 
-
-def build_bootstrap():
+def build_test():
     tag = BOOTSTRAP_VERSION
     put("docker", "~")
-    sudo('docker build --no-cache=true -t="paulharter/augment00-bootstrap:%s" docker/bootstrap' % tag)
-    sudo('docker push paulharter/augment00-bootstrap:%s' % tag)
-    sudo('docker tag paulharter/augment00-bootstrap:%s paulharter/augment00-bootstrap:latest' % tag)
-    sudo('docker push paulharter/augment00-bootstrap:latest')
+    sudo('docker build --no-cache=true -t="paulharter/augment00-test:%s" docker/augment00-test' % tag)
+    sudo('docker push paulharter/augment00-test:%s' % tag)
+    sudo('docker tag paulharter/augment00-test:%s paulharter/augment00-test:latest' % tag)
+    sudo('docker push paulharter/augment00-test:latest')
 
 
+def build_deskcontrol():
+    tag = DESKCONTROL_VERSION
+    put("docker", "~")
+    sudo('docker build --no-cache=true -t="paulharter/augment00-deskcontrol:%s" docker/augment00-deskcontrol' % tag)
+    sudo('docker push paulharter/augment00-deskcontrol:%s' % tag)
+    sudo('docker tag paulharter/augment00-deskcontrol:%s paulharter/augment00-deskcontrol:latest' % tag)
+    sudo('docker push paulharter/augment00-deskcontrol:latest')
 
 
 

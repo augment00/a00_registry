@@ -24,9 +24,12 @@ def get_creds():
 
 
 def already_has_creds(ssid, psk):
-    with open(WPA_SUPPLICANT_FILE) as f:
-        existing = f.read()
-    return  ssid in existing and psk in existing
+    if os.path.exists(WPA_SUPPLICANT_FILE):
+        with open(WPA_SUPPLICANT_FILE, "r") as f:
+            existing = f.read()
+        return  ssid in existing and psk in existing
+    else:
+        return False
 
 
 def add_creds(ssid, psk):
