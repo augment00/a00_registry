@@ -10,8 +10,6 @@ app = Flask(__name__)
 from models import Entity
 import keys
 
-from constants import SALT
-
 
 def is_signed(func):
     @wraps(func)
@@ -39,6 +37,15 @@ def is_signed(func):
 @app.route('/api/config/<entity_uuid>/<nonce>', methods=["GET"])
 @is_signed
 def api_config(entity_uuid, nonce, entity=None):
+
+    serial = request.values.get("serial")
+    if entity.serial is not None and serial != entity.serial:
+        return ("Conflict - Serial doesn't match", 409, {})
+    else:
+        if entity.serial is None:
+            entity.serial = serial
+            entity.put()
+
     return json.dumps(entity.as_json())
 
 

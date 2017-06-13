@@ -3,12 +3,16 @@ from wtforms import Form, BooleanField, StringField, PasswordField, validators, 
 from wtforms.widgets import TextArea
 
 class PersonForm(Form):
+
     name = StringField('NAME', validators=[DataRequired()])
     email = StringField('EMAIL', validators=[DataRequired(), validators.Email()])
 
+
 class EntityForm(Form):
+
     name = StringField('NAME', validators=[DataRequired()])
     description = TextAreaField('DESCRIPTION', [validators.optional(), validators.length(max=1024)])
+    serial = StringField('SERIAL')
     configs = SelectMultipleField('CONFIG FILES')
 
 

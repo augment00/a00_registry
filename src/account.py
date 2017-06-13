@@ -151,13 +151,15 @@ def update_entity(entity_uuid, person=None):
 
     form = EntityForm(request.form,
                       name=entity.name,
-                      description=entity.description
+                      description=entity.description,
+                      serial=entity.serial
                       )
     form.configs.choices = [(c.key.id(), c.name) for c in person.configs]
 
     if request.method == 'POST':
         entity.config = [ndb.Key("ConfigFile", k, parent=person.key) for k in form.configs.data]
         entity.name = form.name.data
+        entity.serial = None if not form.serial.data else form.serial.data
         entity.description = form.description.data
         entity.put()
 
@@ -190,6 +192,7 @@ def regenerate(entity_uuid, person=None):
     memcache.add(entity_uuid, private_key, time=5, namespace="private")
     flash("Take a copy of the credentials below as you won't see them again", "info")
     return redirect("/entity/%s" % entity_uuid)
+
 
 
 ## CRUD for config

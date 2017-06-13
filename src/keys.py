@@ -78,7 +78,6 @@ def sign_url(url, private_pem, salt=""):
     return b64encode(sign(msg, private_key, "SHA-256"))
 
 def verify_sig(url, signature, public_openssh, salt=""):
-    print url, signature
     public_key = importKey(public_openssh)
     msg = "%s%s" % (url, salt)
     return verify(msg, b64decode(signature), public_key)

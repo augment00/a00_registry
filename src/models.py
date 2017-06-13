@@ -162,7 +162,7 @@ class Entity(ndb.Model):
     created = ndb.DateTimeProperty(auto_now_add=True)
     person_key = ndb.KeyProperty(kind="Person", required=True)
     public_key = ndb.TextProperty()
-
+    serial = ndb.StringProperty()
     config = ndb.KeyProperty(ConfigFile, repeated=True)
 
 

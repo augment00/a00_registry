@@ -12,8 +12,7 @@ import api
 
 from models import Person
 
-
-import augment00_client as client
+from augment00_bootstrap import main as bootstrap
 
 THIS_DIR = os.path.dirname(__file__)
 TEMP_DIR = os.path.join(THIS_DIR, "data", "temp")
@@ -31,8 +30,6 @@ class TestEntityApi(unittest.TestCase):
         if os.path.exists(TEMP_DIR):
             shutil.rmtree(TEMP_DIR)
         os.makedirs(TEMP_DIR)
-
-
 
 
     def tearDown(self):
@@ -53,7 +50,7 @@ class TestEntityApi(unittest.TestCase):
             "url": "http://augment00.org/api/config/%s" % entity_uuid
         }
 
-        url = client.config_url(creds)
+        url = bootstrap.config_url(creds)
         # strip off the fron for testing with app
         pp = urlparse(url)
         url = "%s?%s" % (pp.path, pp.query)
@@ -69,6 +66,6 @@ class TestEntityApi(unittest.TestCase):
     def test_write_files(self):
 
         config = [{u'text': u'A whole bunch of text\nwith a line return', u'path': u'a/path/file.txt'}]
-        client.write_config_files(config, TEMP_DIR, "paul", 0755)
+        bootstrap.write_config_files(config, TEMP_DIR, "paul", 0755)
         filepath = os.path.join(TEMP_DIR, u'a/path/file.txt')
         self.assertTrue(os.path.exists(filepath))

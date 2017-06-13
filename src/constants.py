@@ -1,4 +1,4 @@
-from config_local import SALT, FLASK_SECRET_KEY
+from config_local import FLASK_SECRET_KEY
 
-URL_BASE = "http://augemnt00.org"
+URL_BASE = "http://augment00.org"
 

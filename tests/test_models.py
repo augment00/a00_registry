@@ -219,5 +219,3 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
         loaded = json.loads(as_json_string)
 
         self.assertEqual(loaded["config"][0]["text"], "A whole bunch of text\nwith uuid %s" % entity.key.id())
-
-        self.fail(loaded["config"][0]["text"])
