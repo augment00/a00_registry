@@ -22,3 +22,8 @@ class ConfigForm(Form):
     path = StringField('PATH /etc/opt/augment00/', validators=[DataRequired()])
     file_text = HiddenField('TEXT', [DataRequired()])
 
+
+class CommandForm(Form):
+
+    command_text = HiddenField('TEXT', [DataRequired()])
+

@@ -1,0 +1,31 @@
+{% import '_formhelpers.html' as formhelpers %}
+
+{% extends "layout.html" %}
+{% block body %}
+
+    <div class="row">
+        <div class="col-md-6">
+            {{ formhelpers.render_form(form, action_url=action_url, action_text="Send") }}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script>
+        var ace_div = document.createElement("div");
+        var ace_holder_div = document.createElement("div");
+        ace_div.id = "editor";
+        ace_holder_div.id = "ace-holder";
+        ace_holder_div.appendChild(ace_div);
+        var command_text = document.getElementById("command_text");
+        command_text.parentNode.insertBefore(ace_holder_div, command_text);
+        var editor = ace.edit("editor");
+
+        editor.setTheme("ace/theme/dawn");
+        editor.getSession().setMode("ace/mode/python");
+        editor.setValue(command_text.value, -1);
+        editor.getSession().on('change', function(e){
+            command_text.value = editor.getValue();
+        });
+    </script>
+{% endblock %}
+

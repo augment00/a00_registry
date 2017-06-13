@@ -83,6 +83,7 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
         # Next, declare which service stubs you want to use.
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        self.testbed.init_app_identity_stub()
         # Clear ndb's in-context cache between tests.
         # This prevents data from leaking between tests.
         # Alternatively, you could disable caching by
@@ -206,6 +207,7 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
         self.assertEqual(loaded["config"][0]["text"], "A whole bunch of text\nwith a line return")
 
 
+
     def test_config_templating(self):
 
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
@@ -219,3 +221,22 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
         loaded = json.loads(as_json_string)
 
         self.assertEqual(loaded["config"][0]["text"], "A whole bunch of text\nwith uuid %s" % entity.key.id())
+
+
+    def test_config_firebase(self):
+
+        person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
+        entity, private_pem = person.add_new_entity(name="elephant")
+        config_file = person.add_config_file("test", '{"firebase": "{{ firebase }}"}', "a/path/file.txt")
+        entity.add_config_file(config_file)
+        as_json = entity.as_json()
+
+        as_json_string = json.dumps(entity.as_json(), indent=4)
+
+        loaded = json.loads(as_json_string)
+
+        as_json = json.loads(loaded["config"][0]["text"])
+
+        print as_json
+
+        self.fail()

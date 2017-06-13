@@ -16,9 +16,10 @@ app = Flask(__name__)
 app.secret_key = FLASK_SECRET_KEY
 
 from models import Person, Entity, ConfigFile
-from forms import PersonForm, EntityForm, ConfigForm
+from forms import PersonForm, EntityForm, ConfigForm, CommandForm
 from shared import render_login_template, with_person
 from augment_exceptions import NonUniqueException
+import firebase
 
 
 @app.route('/person/new', methods=["POST", "GET"])
@@ -192,6 +193,36 @@ def regenerate(entity_uuid, person=None):
     memcache.add(entity_uuid, private_key, time=5, namespace="private")
     flash("Take a copy of the credentials below as you won't see them again", "info")
     return redirect("/entity/%s" % entity_uuid)
+
+
+@app.route('/entity/<entity_uuid>/command', methods=["GET", "POST"])
+@with_person
+def command(entity_uuid, person=None):
+
+    entity, rsp = _allowed_entity(entity_uuid, person)
+    if entity is None:
+        return rsp
+
+    form = CommandForm(request.form)
+
+    if request.method == 'POST':
+
+        command = form.command_text.data
+        try:
+            as_json = json.loads(command)
+        except Exception as e:
+            flash("Your command wasn't valid json", "error")
+            return render_login_template("command-form.html", form=form, entity=entity)
+
+        firebase.send_message(entity_uuid, command_json=as_json)
+
+        flash("Your command has been sent", "info")
+        return redirect("/entity/%s" % entity_uuid)
+
+    else:
+        return render_login_template("command-form.html", form=form, entity=entity)
+
+
 
 
 

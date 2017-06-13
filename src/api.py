@@ -49,6 +49,7 @@ def api_config(entity_uuid, nonce, entity=None):
     return json.dumps(entity.as_json())
 
 
+
 @app.errorhandler(500)
 def server_error(e):
     # Log the error and stacktrace.

@@ -6,6 +6,7 @@ from google.appengine.api import users
 import keys
 from base64 import b64encode, b64decode
 from jinja2 import Template
+import firebase
 
 from augment_exceptions import NonUniqueException
 from constants import *
@@ -145,12 +146,12 @@ class ConfigFile(ndb.Model):
     text = ndb.TextProperty()
     path = ndb.StringProperty()
 
-    def as_json(self, entity_uuid):
+    def as_json(self, entity_uuid, firebase_token=None):
 
         template = Template(self.text)
 
         return {
-            "text": template.render(uuid=entity_uuid),
+            "text": template.render(uuid=entity_uuid, firebase=firebase_token),
             "path": self.path
         }
 
@@ -168,13 +169,17 @@ class Entity(ndb.Model):
 
     def as_json(self):
 
+        entity_uuid = self.key.id()
+
+        firebase_token = firebase.create_custom_token(entity_uuid)
+
         return {
             "name": self.name,
             "description": self.description,
             "created": str(self.created),
             "person_key": self.person_key.id(),
             "public_key": self.public_key,
-            "config": [c.get().as_json(self.key.id()) for c in self.config]
+            "config": [c.get().as_json(entity_uuid, firebase_token=firebase_token) for c in self.config]
         }
 
     @property
