@@ -92,7 +92,7 @@ def install_docker():
     run("sudo usermod -aG docker pi")
 
     # installs cocker compose
-    sudo("apt-get -y install python-pip")
+    sudo("easy_install pip")
     sudo("pip install docker-compose")
 
 
