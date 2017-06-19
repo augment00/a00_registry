@@ -7,11 +7,27 @@ With thanks to Dennis Lee
 
 from base64 import b64encode, b64decode
 
+from urlparse import urlparse
+import urllib
+import random
+
+import requests
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA512, SHA384, SHA256, SHA, MD5
 from Crypto import Random
+
+
+
+ALPHA_NUMERIC = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+def generateNewRandomAlphaNumeric(length):
+    random.seed()
+    values = []
+    for i in range(length):
+        values.append(random.choice(ALPHA_NUMERIC))
+    return "".join(values)
 
 hash = "SHA-256"
 
@@ -79,3 +95,32 @@ def verify_sig(url, signature, public_openssh, salt=""):
     public_key = importKey(public_openssh)
     msg = "%s%s" % (url, salt)
     return verify(msg, b64decode(signature), public_key)
+
+
+def config_url(creds, cpu_serial):
+    src_url = creds["url"]
+    private_pem = creds["private_key"]
+    parsed = urlparse(src_url)
+    nonced_path = "%s/%s" % (parsed.path, generateNewRandomAlphaNumeric(20))
+    sig = sign_url(nonced_path, private_pem)
+    query = urllib.urlencode({"sig": sig, "serial": cpu_serial})
+    url = "%s://%s%s?%s" % (parsed.scheme, parsed.netloc, nonced_path, query)
+    return url
+
+
+def firebase_url(host, path, access_token):
+    query = urllib.urlencode({"access_token": access_token})
+    return "https://%s%s?%s" % (host, path, query)
+
+
+def get_config(creds, serial):
+    url = config_url(creds, serial)
+    rsp = requests.get(url)
+
+    if rsp.status_code == 200:
+        return rsp.json()
+
+    if rsp.status_code == 409:
+        print "Error: another device is using this key already"
+
+    return None

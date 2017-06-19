@@ -141,6 +141,33 @@ def entity(entity_uuid, person=None):
     return render_login_template("entity.html", entity=entity, person=person, creds=creds, tag=tag)
 
 
+@app.route('/entity/<entity_uuid>/token', methods=["GET"])
+@with_person
+def entity_token(entity_uuid, person=None):
+
+    entity, rsp = _allowed_entity(entity_uuid, person)
+    if entity is None:
+        return rsp
+
+    private_key = memcache.get(entity_uuid, namespace="private")
+    path = "/api/config/%s" % entity.key.id()
+    base = URL_BASE
+    if private_key is not None:
+        creds_json = {
+            "entity_uuid": entity_uuid,
+            "private_key": private_key,
+            "url": "%s%s" % (base, path)
+        }
+        creds = json.dumps(creds_json, indent=4)
+    else:
+        creds = None
+
+    tag = entity_uuid[:8]
+
+    firebase_token = firebase.create_custom_token(entity_uuid)
+
+    return render_login_template("entity.html", entity=entity, person=person, creds=creds, tag=tag, token=firebase_token)
+
 
 @app.route('/entity/<entity_uuid>/update', methods=["POST", "GET"])
 @with_person

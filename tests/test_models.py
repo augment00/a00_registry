@@ -1,11 +1,12 @@
 import unittest
 import json
 
-from google.appengine.api import memcache
+# from google.appengine.api import memcache
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
 from models import Person, Entity, Name
+from firebase import create_custom_token
 import keys
 
 
@@ -237,6 +238,11 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
 
         as_json = json.loads(loaded["config"][0]["text"])
 
-        print as_json
+
+    def test_token(self):
+        entity_uuid = "1020e9bd-cab6-4182-8b17-31d1b5851876"
+        token = create_custom_token(entity_uuid)
+
+        print token
 
         self.fail()

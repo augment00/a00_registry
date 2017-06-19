@@ -1,6 +1,8 @@
 
 usb_local/
 *config_local.py
+src/project00-msme-firebase-adminsdk-9c84u-9162987560.json
+pi/docker/augment00-command/test_command/augment00_creds_12518459.json
 
 # osx
 .DS_Store

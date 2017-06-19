@@ -2,11 +2,13 @@ import json
 import base64
 import time
 import datetime
-
 import httplib2
-
+import os
 
 from google.appengine.api import app_identity
+
+import firebase_admin
+from firebase_admin import credentials, auth
 
 from constants import FIREBASE_URL
 
@@ -18,8 +20,20 @@ _FIREBASE_SCOPES = [
     'https://www.googleapis.com/auth/userinfo.email']
 
 
+CREDENTIALS_NAME = "project00-msme-firebase-adminsdk-9c84u-9162987560.json"
 
-def create_custom_token(uid, valid_minutes=60*24):
+CREDENTIALS_PATH = CREDENTIALS_NAME
+
+cred = credentials.Certificate(CREDENTIALS_PATH)
+firebase_admin.initialize_app(cred)
+
+
+def create_custom_token(uid):
+
+    return auth.create_custom_token(uid)
+
+
+def create_custom_token2(uid, valid_minutes=60):
     """Create a secure token for the given id.
 
     This method is used to create secure custom JWT tokens to be passed to
@@ -31,6 +45,8 @@ def create_custom_token(uid, valid_minutes=60*24):
     # use the app_identity service from google.appengine.api to get the
     # project's service account email automatically
     client_email = app_identity.get_service_account_name()
+
+    # print "client_email: ", client_email
 
     now = int(time.time())
     # encode the required claims

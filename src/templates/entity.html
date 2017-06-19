@@ -56,6 +56,13 @@
                     <td>serial: </td>
                     <td>{{ entity.serial }}</td>
                 </tr>
+                {% if token %}
+                <tr>
+                    <td>firebase token: </td>
+                    <td>{{ token }}</td>
+                </tr>
+                {% endif %}
+
             </table>
         </div>
 

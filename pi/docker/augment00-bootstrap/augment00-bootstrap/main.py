@@ -1,14 +1,12 @@
 
 import random
-from urlparse import urlparse
-import keys
-import wifi
-import urllib
+import auth
+
 import os
 import json
 import shutil
 import subprocess
-from pwd import getpwnam
+
 
 import requests
 
@@ -53,6 +51,8 @@ def get_serial():
   return cpu_serial
 
 
+
+
 def update_config():
 
     if not os.path.exists(CONFIG_DIR):
@@ -70,16 +70,9 @@ def update_config():
     with open(creds_path, "r") as f:
         creds = json.loads(f.read())
 
-    url = config_url(creds)
-    rsp = requests.get(url)
+    config = auth.get_config(creds, get_serial())
 
-
-    if rsp.status_code == 409:
-        print "Error: another device is using this key already"
-        return
-
-    if rsp.status_code == 200:
-        config = rsp.json()
+    if config is not None:
         write_config_files(config["config"], CONFIG_DIR, CONFIG_OWNER, 0755)
         # shutil.copy(creds_path, INSTALLED_CREDS_PATH)
 
@@ -103,16 +96,6 @@ def write_config_files(config, base_dir, owner, mode):
         # os.chown(dst_file_path, uid, gid)
 
 
-def config_url(creds):
-    cpu_serial = get_serial()
-    src_url = creds["url"]
-    private_pem = creds["private_key"]
-    parsed = urlparse(src_url)
-    nonced_path = "%s/%s" % (parsed.path, generateNewRandomAlphaNumeric(20))
-    sig = keys.sign_url(nonced_path, private_pem)
-    query = urllib.urlencode({"sig": sig, "serial": cpu_serial})
-    url = "%s://%s%s?%s" % (parsed.scheme, parsed.netloc, nonced_path, query)
-    return url
 
 
 if __name__ == '__main__':
