@@ -6,6 +6,8 @@ RUN apt-get -q update && \
         python python-pip \
         python-dev gcc make git
 
+RUN apt-get install -y python-imaging
+
 RUN pip install rpi.gpio
 RUN pip install pycrypto
 RUN pip install requests

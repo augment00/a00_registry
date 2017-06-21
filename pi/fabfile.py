@@ -7,6 +7,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 from config import PI_PASSWORD
 
 env.hosts = ["%s:%s" % ("raspberrypi.local", 22)]
+env.hosts = ["%s:%s" % ("10.4.69.r94", 22)]
 env.user = "pi"
 env.password = PI_PASSWORD
 
@@ -102,7 +103,7 @@ def install_docker():
 
 
 def docker_login(password):
-    sudo ('docker login -u augment00 -p %s' % password)
+    sudo ('docker login -u augment00 -p "%s"' % password)
 
 
 def build_python():
@@ -112,15 +113,6 @@ def build_python():
     sudo('docker push augment00/augment00-python:%s' % tag)
     sudo('docker tag augment00/augment00-python:%s augment00/augment00-python:latest' % tag)
     sudo('docker push augment00/augment00-python:latest')
-
-
-# def build_test():
-#     tag = BOOTSTRAP_VERSION
-#     put("docker", "~")
-#     sudo('docker build --no-cache=true -t="paulharter/augment00-test:%s" docker/augment00-test' % tag)
-#     sudo('docker push paulharter/augment00-test:%s' % tag)
-#     sudo('docker tag paulharter/augment00-test:%s paulharter/augment00-test:latest' % tag)
-#     sudo('docker push paulharter/augment00-test:latest')
 
 
 def build_deskcontrol():

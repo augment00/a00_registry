@@ -1,4 +1,4 @@
-FROM paulharter/augment00-python:latest
+FROM augment00/augment00-python:latest
 
 RUN mkdir -p /opt/augment00
 ADD augment00-test /opt/augment00/augment00-test

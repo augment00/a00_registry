@@ -1,4 +1,4 @@
-FROM paulharter/augment00-python:latest
+FROM augment00/augment00-python:latest
 
 RUN apt-get install -y python-imaging
 
