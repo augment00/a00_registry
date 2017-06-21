@@ -8,6 +8,7 @@ from flask import Flask, request
 app = Flask(__name__)
 
 from models import Entity
+import firebase
 import keys
 
 
@@ -48,6 +49,17 @@ def api_config(entity_uuid, nonce, entity=None):
 
     return json.dumps(entity.as_json())
 
+
+@app.route('/api/firebase-token/<entity_uuid>/<nonce>', methods=["GET"])
+@is_signed
+def api_token(entity_uuid, nonce, entity=None):
+
+    data = {
+        "entity_uuid": entity_uuid,
+        "firebase_custom_token": firebase.create_custom_token(entity_uuid)
+    }
+
+    return json.dumps(data)
 
 
 @app.errorhandler(500)

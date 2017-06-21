@@ -3,37 +3,21 @@ import base64
 import time
 import datetime
 import httplib2
-import os
 
 from google.appengine.api import app_identity
-
-import firebase_admin
-from firebase_admin import credentials, auth
+from oauth2client.client import GoogleCredentials
 
 from constants import FIREBASE_URL
 
-
-_IDENTITY_ENDPOINT = ('https://identitytoolkit.googleapis.com/'
-                      'google.identity.identitytoolkit.v1.IdentityToolkit')
 _FIREBASE_SCOPES = [
     'https://www.googleapis.com/auth/firebase.database',
     'https://www.googleapis.com/auth/userinfo.email']
 
-
-CREDENTIALS_NAME = "project00-msme-firebase-adminsdk-9c84u-9162987560.json"
-
-CREDENTIALS_PATH = CREDENTIALS_NAME
-
-cred = credentials.Certificate(CREDENTIALS_PATH)
-firebase_admin.initialize_app(cred)
+_IDENTITY_ENDPOINT = ('https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit')
 
 
-def create_custom_token(uid):
 
-    return auth.create_custom_token(uid)
-
-
-def create_custom_token2(uid, valid_minutes=60):
+def create_custom_token(uid, valid_minutes=60):
     """Create a secure token for the given id.
 
     This method is used to create secure custom JWT tokens to be passed to
@@ -68,7 +52,7 @@ def create_custom_token2(uid, valid_minutes=60):
 
 
 def _get_http():
-    from oauth2client.client import GoogleCredentials
+    # from oauth2client.client import GoogleCredentials
     """Provides an authed http object."""
     http = httplib2.Http()
     # Use application default credentials to make the Firebase calls
