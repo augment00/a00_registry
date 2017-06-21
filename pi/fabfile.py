@@ -76,8 +76,8 @@ def _add_bootstrap():
 def build_bootstrap():
     tag = BOOTSTRAP_VERSION
     put("docker", "~")
-    sudo('docker build --no-cache=true -t="paulharter/augment00-bootstrap:%s" docker/augment00-bootstrap' % tag)
-    sudo('docker tag paulharter/augment00-bootstrap:%s paulharter/augment00-bootstrap:latest' % tag)
+    sudo('docker build --no-cache=true -t="augment00/augment00-bootstrap:%s" docker/augment00-bootstrap' % tag)
+    sudo('docker tag augment00/augment00-bootstrap:%s augment00/augment00-bootstrap:latest' % tag)
 
 
 def install_docker():
@@ -107,20 +107,20 @@ def docker_login(password):
 
 def build_python():
     tag = PYTHON_VERSION
-    # put("docker", "~")
-    # sudo('docker build --no-cache=true -t="paulharter/augment00-python:%s" docker/augment00-python' % tag)
+    put("docker", "~")
+    sudo('docker build --no-cache=true -t="augment00/augment00-python:%s" docker/augment00-python' % tag)
     sudo('docker push augment00/augment00-python:%s' % tag)
     sudo('docker tag augment00/augment00-python:%s augment00/augment00-python:latest' % tag)
     sudo('docker push augment00/augment00-python:latest')
 
 
-def build_test():
-    tag = BOOTSTRAP_VERSION
-    put("docker", "~")
-    sudo('docker build --no-cache=true -t="paulharter/augment00-test:%s" docker/augment00-test' % tag)
-    sudo('docker push paulharter/augment00-test:%s' % tag)
-    sudo('docker tag paulharter/augment00-test:%s paulharter/augment00-test:latest' % tag)
-    sudo('docker push paulharter/augment00-test:latest')
+# def build_test():
+#     tag = BOOTSTRAP_VERSION
+#     put("docker", "~")
+#     sudo('docker build --no-cache=true -t="paulharter/augment00-test:%s" docker/augment00-test' % tag)
+#     sudo('docker push paulharter/augment00-test:%s' % tag)
+#     sudo('docker tag paulharter/augment00-test:%s paulharter/augment00-test:latest' % tag)
+#     sudo('docker push paulharter/augment00-test:latest')
 
 
 def build_deskcontrol():
