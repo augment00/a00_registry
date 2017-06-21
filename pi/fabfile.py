@@ -102,16 +102,16 @@ def install_docker():
 
 
 def docker_login(password):
-    sudo ('docker login -u paulharter -p %s' % password)
+    sudo ('docker login -u augment00 -p %s' % password)
 
 
 def build_python():
     tag = PYTHON_VERSION
     # put("docker", "~")
     # sudo('docker build --no-cache=true -t="paulharter/augment00-python:%s" docker/augment00-python' % tag)
-    sudo('docker push paulharter/augment00-python:%s' % tag)
-    sudo('docker tag paulharter/augment00-python:%s paulharter/augment00-python:latest' % tag)
-    sudo('docker push paulharter/augment00-python:latest')
+    sudo('docker push augment00/augment00-python:%s' % tag)
+    sudo('docker tag augment00/augment00-python:%s augment00/augment00-python:latest' % tag)
+    sudo('docker push augment00/augment00-python:latest')
 
 
 def build_test():
@@ -126,10 +126,10 @@ def build_test():
 def build_deskcontrol():
     tag = DESKCONTROL_VERSION
     put("docker", "~")
-    sudo('docker build --no-cache=true -t="paulharter/augment00-deskcontrol:%s" docker/augment00-deskcontrol' % tag)
-    sudo('docker push paulharter/augment00-deskcontrol:%s' % tag)
-    sudo('docker tag paulharter/augment00-deskcontrol:%s paulharter/augment00-deskcontrol:latest' % tag)
-    sudo('docker push paulharter/augment00-deskcontrol:latest')
+    sudo('docker build --no-cache=true -t="augment00/augment00-deskcontrol:%s" docker/augment00-deskcontrol' % tag)
+    sudo('docker push augment00/augment00-deskcontrol:%s' % tag)
+    sudo('docker tag augment00/augment00-deskcontrol:%s augment00/augment00-deskcontrol:latest' % tag)
+    sudo('docker push augment00/augment00-deskcontrol:latest')
 
 
 
