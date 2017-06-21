@@ -7,7 +7,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 from config import PI_PASSWORD
 
 env.hosts = ["%s:%s" % ("raspberrypi.local", 22)]
-env.hosts = ["%s:%s" % ("10.4.69.r94", 22)]
+#env.hosts = ["%s:%s" % ("169.254.162.179", 22)]
 env.user = "pi"
 env.password = PI_PASSWORD
 
@@ -15,6 +15,7 @@ BOOTSTRAP_VERSION = "0.0.1"
 PYTHON_VERSION = "0.0.1"
 TEST_VERSION = "0.0.1"
 DESKCONTROL_VERSION = "0.0.1"
+BRICKD_VERSION = "0.0.1"
 
 JESSIE_VERSION = "2017-04-10-raspbian-jessie-lite"
 
@@ -123,7 +124,13 @@ def build_deskcontrol():
     sudo('docker tag augment00/augment00-deskcontrol:%s augment00/augment00-deskcontrol:latest' % tag)
     sudo('docker push augment00/augment00-deskcontrol:latest')
 
-
+def build_brickd():
+    tag = BRICKD_VERSION
+    put("docker", "~")
+    sudo('docker build --no-cache=true -t="augment00/augment00-brickd:%s" docker/augment00-brickd' % tag)
+    sudo('docker push augment00/augment00-brickd:%s' % tag)
+    sudo('docker tag augment00/augment00-brickd:%s augment00/augment00-brickd:latest' % tag)
+    sudo('docker push augment00/augment00-brickd:latest')
 
 
 
