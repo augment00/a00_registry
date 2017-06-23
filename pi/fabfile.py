@@ -6,8 +6,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 from config import PI_PASSWORD
 
-#env.hosts = ["%s:%s" % ("raspberrypi.local", 22)]
-env.hosts = ["%s:%s" % ("169.254.162.179", 22)]
+env.hosts = ["%s:%s" % ("raspberrypi.local", 22)]
+#env.hosts = ["%s:%s" % ("169.254.162.179", 22)]
 env.user = "pi"
 env.password = PI_PASSWORD
 
@@ -78,7 +78,7 @@ def _add_bootstrap():
 def build_bootstrap():
     tag = BOOTSTRAP_VERSION
     put("docker", "~")
-    sudo('docker build --no-cache=true -t="augment00/augment00-bootstrap:%s"'
+    sudo('docker build --no-cache=true -t="augment00/augment00-bootstrap:%s" '
          'docker/augment00-bootstrap' % tag)
     sudo('docker tag augment00/augment00-bootstrap:%s augment00/'
          'augment00-bootstrap:latest' % tag)
