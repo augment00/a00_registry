@@ -6,8 +6,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 from config import PI_PASSWORD
 
-env.hosts = ["%s:%s" % ("raspberrypi.local", 22)]
-#env.hosts = ["%s:%s" % ("169.254.162.179", 22)]
+#env.hosts = ["%s:%s" % ("raspberrypi.local", 22)]
+env.hosts = ["%s:%s" % ("169.254.162.179", 22)]
 env.user = "pi"
 env.password = PI_PASSWORD
 
@@ -78,8 +78,10 @@ def _add_bootstrap():
 def build_bootstrap():
     tag = BOOTSTRAP_VERSION
     put("docker", "~")
-    sudo('docker build --no-cache=true -t="augment00/augment00-bootstrap:%s" docker/augment00-bootstrap' % tag)
-    sudo('docker tag augment00/augment00-bootstrap:%s augment00/augment00-bootstrap:latest' % tag)
+    sudo('docker build --no-cache=true -t="augment00/augment00-bootstrap:%s"'
+         'docker/augment00-bootstrap' % tag)
+    sudo('docker tag augment00/augment00-bootstrap:%s augment00/'
+         'augment00-bootstrap:latest' % tag)
 
 
 def install_docker():
@@ -94,7 +96,8 @@ def install_docker():
     run("sudo usermod -aG docker pi")
 
     # installs cocker compose
-    sudo("easy_install pip")
+    sudo("curl --silent --show-error --retry 5 https://bootstrap.pypa.io/"
+         "get-pip.py | sudo python2.7")
     sudo("pip install docker-compose")
 
 
@@ -104,7 +107,7 @@ def install_docker():
 
 
 def docker_login(password):
-    sudo ('docker login -u augment00 -p "%s"' % password)
+    sudo('docker login -u augment00 -p "%s"' % password)
 
 
 def build_python():
