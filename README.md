@@ -15,6 +15,8 @@ This will make possible:
 - Over the air updating of both code and configuration
 - Simple ongoing support and maintenance
 
+![augment00 services](docs/IMG_1477.PNG)
+
 ## Registry
 
 The registry app is a Google App Engine app that provides the core registration and configuration services used by Augment00 clients.
@@ -29,4 +31,4 @@ folder and the readme in here [pi/readme.md](pi/readme.md)
 
 There is an example set of configuration files in the usb folder
 
-![augment00 services](docs/IMG_1477.PNG)
+
