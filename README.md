@@ -28,3 +28,5 @@ folder and the readme in here [pi/readme.md](pi/readme.md)
 ## USB configuration
 
 There is an example set of configuration files in the usb folder
+
+![augment00 services](docs/IMG_1477.PNG)
