@@ -1,12 +1,8 @@
 from functools import wraps
 
 from flask import Flask, render_template, redirect, request
-
 from google.appengine.api import users
-
 from models import Person
-
-
 
 
 def render_login_template(template, **kwargs):

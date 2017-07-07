@@ -5,7 +5,7 @@ import datetime
 import httplib2
 
 from google.appengine.api import app_identity
-from oauth2client.client import GoogleCredentials
+
 
 from constants import FIREBASE_URL
 
@@ -14,7 +14,6 @@ _FIREBASE_SCOPES = [
     'https://www.googleapis.com/auth/userinfo.email']
 
 _IDENTITY_ENDPOINT = ('https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit')
-
 
 
 def create_custom_token(uid, valid_minutes=60):
@@ -52,6 +51,7 @@ def create_custom_token(uid, valid_minutes=60):
 
 
 def _get_http():
+    from oauth2client.client import GoogleCredentials
     # from oauth2client.client import GoogleCredentials
     """Provides an authed http object."""
     http = httplib2.Http()

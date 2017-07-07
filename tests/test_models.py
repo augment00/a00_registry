@@ -6,8 +6,8 @@ from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
 from models import Person, Entity, Name
-from firebase import create_custom_token
-import keys
+from utilities.firebase import create_custom_token
+import utilities.keys as keys
 
 
 class ModelsTestCase(unittest.TestCase):
@@ -242,7 +242,3 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
     def test_token(self):
         entity_uuid = "1020e9bd-cab6-4182-8b17-31d1b5851876"
         token = create_custom_token(entity_uuid)
-
-        print token
-
-        self.fail()

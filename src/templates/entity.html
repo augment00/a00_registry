@@ -56,13 +56,12 @@
                     <td>serial: </td>
                     <td>{{ entity.serial }}</td>
                 </tr>
-                {% if token %}
-                <tr>
-                    <td>firebase token: </td>
-                    <td>{{ token }}</td>
-                </tr>
-                {% endif %}
-
+{#                {% for k, v in entity.template_values.iteritems() %}#}
+{#                <tr>#}
+{#                    <td>{{ k }}: </td>#}
+{#                    <td>{{ v }}</td>#}
+{#                </tr>#}
+{#                {% endfor %}#}
             </table>
         </div>
 

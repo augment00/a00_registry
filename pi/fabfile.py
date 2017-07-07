@@ -124,6 +124,7 @@ def build_deskcontrol():
     sudo('docker tag augment00/augment00-deskcontrol:%s augment00/augment00-deskcontrol:latest' % tag)
     sudo('docker push augment00/augment00-deskcontrol:latest')
 
+
 def build_brickd():
     tag = BRICKD_VERSION
     put("docker", "~")

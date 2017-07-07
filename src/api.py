@@ -7,9 +7,8 @@ from google.appengine.ext import ndb
 from flask import Flask, request
 app = Flask(__name__)
 
-from models import Entity
-import firebase
-import keys
+from models import Entity, Person
+from utilities import firebase, keys
 
 
 def is_signed(func):
@@ -17,6 +16,28 @@ def is_signed(func):
     def decorated_view(*args, **kwargs):
         path = request.path
         print path
+        sig = request.values.get("sig")
+        if sig is None:
+            print "no sig"
+            return ("Permission denied", 401, {})
+        parts = path.split("/")
+        entity_uuid = parts[-2]
+        key = ndb.Key("Entity", entity_uuid)
+        entity = key.get()
+        if entity is None:
+            return ("Not found", 403, {})
+        ok = keys.verify_sig(path, sig, entity.public_key)
+        if not ok:
+            print "not ok"
+            return ("Permission denied", 401, {})
+        return func(*args, entity=entity, **kwargs)
+    return decorated_view
+
+def with_api_key(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        auth_string = request.headers.get("Authorization")
+        path = request.path
         sig = request.values.get("sig")
         if sig is None:
             print "no sig"
@@ -60,6 +81,7 @@ def api_token(entity_uuid, nonce, entity=None):
     }
 
     return json.dumps(data)
+
 
 
 @app.errorhandler(500)

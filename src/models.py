@@ -3,10 +3,10 @@ import uuid
 from Crypto.PublicKey import RSA
 from google.appengine.ext import ndb
 from google.appengine.api import users
-import keys
 from base64 import b64encode, b64decode
 from jinja2 import Template
-import firebase
+
+from utilities import firebase, keys
 
 from augment_exceptions import NonUniqueException
 from constants import *
@@ -146,12 +146,15 @@ class ConfigFile(ndb.Model):
     text = ndb.TextProperty()
     path = ndb.StringProperty()
 
-    def as_json(self, entity_uuid, firebase_token=None):
+    def as_json(self, entity):
+
+        entity_uuid = entity.key.id()
+        template_values = entity.template_values
 
         template = Template(self.text)
 
         return {
-            "text": template.render(uuid=entity_uuid, firebase=firebase_token),
+            "text": template.render(uuid=entity_uuid, **template_values),
             "path": self.path
         }
 
@@ -165,13 +168,12 @@ class Entity(ndb.Model):
     public_key = ndb.TextProperty()
     serial = ndb.StringProperty()
     config = ndb.KeyProperty(ConfigFile, repeated=True)
+    template_values = ndb.JsonProperty(default={})
 
 
     def as_json(self):
 
         entity_uuid = self.key.id()
-
-        firebase_token = firebase.create_custom_token(entity_uuid)
 
         return {
             "name": self.name,
@@ -179,13 +181,12 @@ class Entity(ndb.Model):
             "created": str(self.created),
             "person_key": self.person_key.id(),
             "public_key": self.public_key,
-            "config": [c.get().as_json(entity_uuid, firebase_token=firebase_token) for c in self.config]
+            "config": [c.get().as_json(self) for c in self.config]
         }
 
     @property
     def config_files(self):
         configs = [c.get() for c in self.config]
-        print configs
         return configs
 
     def add_config_file(self, config_file):

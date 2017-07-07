@@ -19,7 +19,7 @@ from models import Person, Entity, ConfigFile
 from forms import PersonForm, EntityForm, ConfigForm, CommandForm
 from shared import render_login_template, with_person
 from augment_exceptions import NonUniqueException
-import firebase
+from utilities import firebase, aiven
 
 
 @app.route('/person/new', methods=["POST", "GET"])
@@ -92,6 +92,7 @@ def new_entity(person=None):
         entity, private_key = person.add_new_entity(name=form.name.data,
                                        description=form.description.data
                                        )
+        aiven.add_influx_password(entity)
         entity_uuid = entity.key.id()
         memcache.add(entity_uuid, private_key, time=5, namespace="private")
         flash("Take a copy of the credentials below as you won't see them again", "info")
@@ -217,6 +218,7 @@ def regenerate(entity_uuid, person=None):
         return rsp
 
     private_key = entity.regenerate_keys()
+    aiven.add_influx_password(entity)
     memcache.add(entity_uuid, private_key, time=5, namespace="private")
     flash("Take a copy of the credentials below as you won't see them again", "info")
     return redirect("/entity/%s" % entity_uuid)
@@ -248,9 +250,6 @@ def command(entity_uuid, person=None):
 
     else:
         return render_login_template("command-form.html", form=form, entity=entity)
-
-
-
 
 
 ## CRUD for config
@@ -314,7 +313,6 @@ def delete_config(config_uuid, person=None):
         return rsp
 
     config_file.key.delete()
-
     return redirect("/")
 
 
@@ -325,21 +323,14 @@ def new_config(person=None):
     form = ConfigForm(request.form)
 
     if request.method == 'POST':
-
         config = person.add_config_file(form.name.data,
                                         form.file_text.data,
                                         form.path.data
                                         )
-
         config_uuid = config.key.id()
         return redirect("/config/%s" % config_uuid)
-
     else:
         return render_login_template("config-form.html", form=form)
-
-
-
-
 
 
 @app.errorhandler(500)
