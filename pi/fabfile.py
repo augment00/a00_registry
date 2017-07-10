@@ -44,7 +44,7 @@ def prepare_card():
     _change_graphics_memory()
     install_docker()
     _add_bootstrap()
-    sudo("reboot")
+    # sudo("reboot")
 
 
 def change_password():
@@ -82,6 +82,7 @@ def build_bootstrap():
     sudo('docker tag augment00/augment00-bootstrap:%s augment00/augment00-bootstrap:latest' % tag)
 
 
+
 def install_docker():
 
     # install docker
@@ -93,8 +94,9 @@ def install_docker():
     # allows pi use to use docker
     run("sudo usermod -aG docker pi")
 
-    # installs cocker compose
-    sudo("easy_install pip")
+    # installs Docker compose
+    sudo("wget https://bootstrap.pypa.io/get-pip.py")
+    sudo("python get-pip.py")
     sudo("pip install docker-compose")
 
 
@@ -105,6 +107,10 @@ def install_docker():
 
 def docker_login(password):
     sudo ('docker login -u augment00 -p "%s"' % password)
+
+
+def push_bootstrap():
+    sudo('docker push augment00/augment00-bootstrap:latest')
 
 
 def build_python():
