@@ -1,7 +1,5 @@
 FROM augment00/augment00-python:latest
 
-RUN apt-get install -y python-imaging
-
 RUN mkdir -p /opt/augment00
 
 RUN cd /opt/augment00 && git clone https://github.com/blip2/deskcontrol.git

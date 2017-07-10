@@ -78,8 +78,10 @@ def _add_bootstrap():
 def build_bootstrap():
     tag = BOOTSTRAP_VERSION
     put("docker", "~")
-    sudo('docker build --no-cache=true -t="augment00/augment00-bootstrap:%s" docker/augment00-bootstrap' % tag)
-    sudo('docker tag augment00/augment00-bootstrap:%s augment00/augment00-bootstrap:latest' % tag)
+    sudo('docker build --no-cache=true -t="augment00/augment00-bootstrap:%s" '
+         'docker/augment00-bootstrap' % tag)
+    sudo('docker tag augment00/augment00-bootstrap:%s augment00/'
+         'augment00-bootstrap:latest' % tag)
 
 
 
@@ -94,9 +96,9 @@ def install_docker():
     # allows pi use to use docker
     run("sudo usermod -aG docker pi")
 
-    # installs Docker compose
-    sudo("wget https://bootstrap.pypa.io/get-pip.py")
-    sudo("python get-pip.py")
+    # installs cocker compose
+    sudo("curl --silent --show-error --retry 5 https://bootstrap.pypa.io/"
+         "get-pip.py | sudo python2.7")
     sudo("pip install docker-compose")
 
 
@@ -106,7 +108,7 @@ def install_docker():
 
 
 def docker_login(password):
-    sudo ('docker login -u augment00 -p "%s"' % password)
+    sudo('docker login -u augment00 -p "%s"' % password)
 
 
 def push_bootstrap():

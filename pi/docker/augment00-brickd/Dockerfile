@@ -9,7 +9,5 @@ RUN sudo dpkg -i brickd_linux_latest_armhf.deb
 
 EXPOSE 4223
 
-WORKDIR /usr/bin/
-
-CMD ["bash", "brickd"]
+CMD /usr/bin/brickd
 
