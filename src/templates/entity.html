@@ -109,7 +109,7 @@
             </div>
             <table class="table">
                 {% for config in entity.config_files %}
-                    {% if config is not None %}
+                    {% if config %}
                         <tr>
                             <td class="vmiddle item-title"><a href="/config/{{ config.key.id() }}">{{ config.name }}</a></td>
                         </tr>

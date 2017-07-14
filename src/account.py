@@ -98,7 +98,7 @@ def new_entity(person=None):
 
         entity = person.add_new_entity(name=form.name.data,
                                        description=form.description.data,
-                                       config = [ndb.Key("ConfigFile", k, parent=person.key) for k in form.configs.data]
+                                       config = [ndb.Key("ConfigFile", k, parent=person.key) for k in form.configs.data if ndb.Key("ConfigFile", k, parent=person.key) is not None]
                                        )
 
         entity_uuid = entity.key.id()
@@ -162,7 +162,7 @@ def update_entity(entity_uuid, person=None):
     form.configs.choices = [(c.key.id(), c.name) for c in person.configs]
 
     if request.method == 'POST':
-        entity.config = [ndb.Key("ConfigFile", k, parent=person.key) for k in form.configs.data]
+        entity.config = [ndb.Key("ConfigFile", k, parent=person.key) for k in form.configs.data if ndb.Key("ConfigFile", k, parent=person.key) is not None]
         entity.name = form.name.data
         entity.serial = None if not form.serial.data else form.serial.data
         entity.description = form.description.data
