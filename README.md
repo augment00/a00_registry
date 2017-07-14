@@ -1,10 +1,7 @@
 # Augment00 Registry
 
-There are several distinct bits of code here (I will probably split them out soon).
-
-There is a registry web app where all clients are registered.
-This provides both the source of truth for info about clients and a file based configuration service to bootstrap and configure clients.
-There are scripts to build the SD card that goes in the Raspberry Pis and some sample USB configuration files.
+This registry app is a Google App Engine app that provides the core registration and configuration services used by Augment00 clients.
+This is in the src folder and the readme is here [src/README.md](src/README.md)
 
 The plan is that all clients are plug-and-play with a USB attached to each desk that provides minimal credentials and configuration.
 The Raspberry Pis will be given a base images on sd cards that has just jessie lite, docker/compose and a simple startup script.
@@ -17,18 +14,37 @@ This will make possible:
 
 ![augment00 services](docs/IMG_1477.PNG)
 
-## Registry
 
-The registry app is a Google App Engine app that provides the core registration and configuration services used by Augment00 clients.
-This is in the src folder and the readme is here [src/README.md](src/README.md)
+## Run Locally
+1. Install the [App Engine Python SDK](https://developers.google.com/appengine/downloads).
+See the README file for directions. You'll need python 2.7 and [pip 1.4 or later](http://www.pip-installer.org/en/latest/installing.html) installed too.
 
-## Raspberry Pi
+2. Clone this repo with
 
-Augment00 uses Raspberry Pis as its main processors in clients. scripts for building prepared SD cards and docker images are ing the pi
-folder and the readme in here [pi/readme.md](pi/readme.md)
+   ```
+   git clone git@github.com:augment00/a00_registry.git
+   ```
+3. Install dependencies in the project's lib directory.
+   Note: App Engine can only import libraries from inside your project directory.
 
-## USB configuration
+   ```
+   cd a00_registry/src
+   pip install -r requirements.txt -t lib
+   ```
+4. Run this project locally from the command line:
 
-There is an example set of configuration files in the usb folder
+   ```
+   dev_appserver.py .
+   ```
 
+Visit the application [http://localhost:8080](http://localhost:8080)
 
+See [the development server documentation](https://developers.google.com/appengine/docs/python/tools/devserver)
+for options when running dev_appserver.
+
+## Deploy
+To deploy the application:
+
+1. install gcloud command line tools [https://cloud.google.com/sdk/downloads](https://cloud.google.com/sdk/downloads)
+
+2. from a00_registry/src run:  `gcloud --project=project00-msme app deploy`
