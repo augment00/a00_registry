@@ -10,6 +10,8 @@ app = Flask(__name__)
 from models import Entity, Person
 from utilities import firebase, keys
 
+from constants import *
+
 
 def is_signed(func):
     @wraps(func)
@@ -33,26 +35,27 @@ def is_signed(func):
         return func(*args, entity=entity, **kwargs)
     return decorated_view
 
+
 def with_api_key(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
-        auth_string = request.headers.get("Authorization")
-        path = request.path
-        sig = request.values.get("sig")
-        if sig is None:
-            print "no sig"
+        as_json = request.get_json(force=True)
+        if as_json is None:
+            print "no json"
+            return ("Permission denied, no json data", 401, {})
+        google_id = as_json.get("user_id")
+        api_key = as_json.get("api_key")
+        if google_id is None or api_key is None:
             return ("Permission denied", 401, {})
-        parts = path.split("/")
-        entity_uuid = parts[-2]
-        key = ndb.Key("Entity", entity_uuid)
-        entity = key.get()
-        if entity is None:
-            return ("Not found", 403, {})
-        ok = keys.verify_sig(path, sig, entity.public_key)
-        if not ok:
-            print "not ok"
+
+        person = Person.with_google_id(google_id)
+        if person is None:
             return ("Permission denied", 401, {})
-        return func(*args, entity=entity, **kwargs)
+
+        if person.api_key != api_key:
+            return ("Permission denied", 401, {})
+
+        return func(*args, person=person, **kwargs)
     return decorated_view
 
 
@@ -68,7 +71,7 @@ def api_config(entity_uuid, nonce, entity=None):
             entity.serial = serial
             entity.put()
 
-    return json.dumps(entity.as_json())
+        return json.dumps(entity.as_json())
 
 
 @app.route('/api/firebase-token/<entity_uuid>/<nonce>', methods=["GET"])
@@ -82,6 +85,60 @@ def api_token(entity_uuid, nonce, entity=None):
 
     return json.dumps(data)
 
+
+@app.route('/api/new-entity', methods=["POST"])
+@with_api_key
+def new_entity(person=None):
+
+    as_json = request.get_json(force=True)
+    entity = Entity.create(person.key, name=as_json["name"])
+    entity_uuid = entity.key.id()
+
+    return entity_uuid, 201
+
+
+@app.route('/api/entity/<entity_uuid>/add-value', methods=["POST"])
+@with_api_key
+def add_value(entity_uuid, person=None):
+
+    key = ndb.Key("Entity", entity_uuid)
+    entity = key.get()
+
+    if entity.person_key != person.key:
+        return ("Permission denied", 401, {})
+
+    as_json = request.get_json(force=True)
+
+    value_name = as_json["name"]
+    value = as_json["value"]
+
+    if value_name == "name":
+        entity.name = value
+    else:
+        entity.template_values[value_name] = value
+
+    entity.put()
+    return "ok", 200
+
+
+@app.route('/api/entity/<entity_uuid>/send-command', methods=["POST"])
+@with_api_key
+def send_command(entity_uuid, person=None):
+
+    key = ndb.Key("Entity", entity_uuid)
+    entity = key.get()
+
+    if entity.person_key != person.key:
+        return ("Permission denied", 401, {})
+
+    as_json = request.get_json(force=True)
+
+    if not frozenset(as_json.keys()) == {"method", "params"}:
+        return ("Malformed request", 400, {})
+
+    firebase.send_message(entity_uuid, command_json=as_json)
+
+    return "ok", 200
 
 
 @app.errorhandler(500)

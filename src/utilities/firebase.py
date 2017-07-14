@@ -79,11 +79,7 @@ def firebase_put(path, value=None):
 
 
 def send_message(u_id, command_json=None):
-    """Updates data in firebase. If a message is provided, then it updates
-     the data at /channels/<channel_id> with the message using the PATCH
-     http method. If no message is provided, then the data at this location
-     is deleted using the DELETE http method
-     """
+
     url = '{}/channels/{}.json'.format(FIREBASE_URL, u_id)
 
     dt = datetime.datetime.now()

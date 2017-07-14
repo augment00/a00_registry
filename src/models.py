@@ -1,4 +1,4 @@
-
+import random
 import uuid
 from Crypto.PublicKey import RSA
 from google.appengine.ext import ndb
@@ -10,6 +10,16 @@ from utilities import firebase, keys
 
 from augment_exceptions import NonUniqueException
 from constants import *
+
+
+ALPHA_NUMERIC = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+def generateNewRandomAlphaNumeric(length):
+    random.seed()
+    values = []
+    for i in range(length):
+        values.append(random.choice(ALPHA_NUMERIC))
+    return "".join(values)
 
 
 class Name(ndb.Model):
@@ -28,6 +38,7 @@ class Person(ndb.Model):
     name_key = ndb.KeyProperty(kind="Name", required=True)
     email_key = ndb.KeyProperty(kind="Email", required=True)
     google_id_key = ndb.KeyProperty(kind="GoogleId")
+    api_key = ndb.StringProperty()
 
 
     @classmethod
@@ -36,7 +47,12 @@ class Person(ndb.Model):
         email_key = cls._new_unique_key(Email, email)
         google_id_key = cls._new_unique_key(GoogleId, google_id)
         person_uuid = str(uuid.uuid4())
-        person = cls(name_key=name_key, email_key=email_key, google_id_key=google_id_key, id=person_uuid)
+        api_key = generateNewRandomAlphaNumeric(30)
+        person = cls(name_key=name_key,
+                     email_key=email_key,
+                     google_id_key=google_id_key,
+                     id=person_uuid,
+                     api_key=api_key)
         person.put()
         return person
 
@@ -101,8 +117,7 @@ class Person(ndb.Model):
 
 
     def add_new_entity(self, **kwargs):
-        entity, private_key = Entity.create(self.key, **kwargs)
-        return entity, private_key
+        return Entity.create(self.key, **kwargs)
 
 
     @property
@@ -121,6 +136,14 @@ class Person(ndb.Model):
         self.email_key.delete()
         self.google_id_key.delete()
         self.key.delete()
+
+
+    def reset_api_key(self):
+
+        self.api_key = generateNewRandomAlphaNumeric(30)
+        self.put()
+
+
 
     def add_config_file(self, name, text, path):
 
@@ -166,6 +189,7 @@ class Entity(ndb.Model):
     created = ndb.DateTimeProperty(auto_now_add=True)
     person_key = ndb.KeyProperty(kind="Person", required=True)
     public_key = ndb.TextProperty()
+    private_key = ndb.TextProperty()
     serial = ndb.StringProperty()
     config = ndb.KeyProperty(ConfigFile, repeated=True)
     template_values = ndb.JsonProperty(default={})
@@ -205,11 +229,12 @@ class Entity(ndb.Model):
 
     def regenerate_keys(self):
         public, private = keys.newkeys(2048)
-        private_key = private.exportKey('PEM')
+        self.private_key = private.exportKey('PEM')
         self.public_key = public.exportKey('PEM')
         self.put()
 
-        return private_key
+        return self.private_key
+
 
     @classmethod
     def create(cls, person_key, **kwargs):
@@ -217,15 +242,16 @@ class Entity(ndb.Model):
         public, private = keys.newkeys(2048)
         private_key = private.exportKey('PEM')
         public_key = public.exportKey('PEM')
-
         entity_uuid = str(uuid.uuid4())
+
         entity = cls(id=entity_uuid,
                      person_key=person_key,
                      public_key=public_key,
+                     private_key=private_key,
                      **kwargs)
         entity.put()
 
-        return entity, private_key
+        return entity
 
 
 

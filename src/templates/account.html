@@ -37,12 +37,42 @@
                         </div>
                     </div>
                 </div>
-
+                <div class="heading-anchor">
+                    <a href="#" data-toggle="modal" data-target="#confirm-regenerate">
+                        <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> regenerate api key
+                    </a>
+                </div>
+                <div class="modal fade" id="confirm-regenerate" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="heading-title">Regenerate API Key</h4>
+                            </div>
+                            <div class="modal-body">
+                                This will generate a new API key. Are you sure?
+                            </div>
+                            <div class="modal-footer">
+                                <form class="inline-form" action="/person/regenerate-apikey" method="post">
+                                    <button type="submit" class="btn btn-danger btn-ok pull-right">Regenerate</button>
+                                </form>
+                                <button type="button" class="btn btn-default pull-right" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <table class="table">
                 <tr>
                     <td>email: </td>
                     <td>{{ person.email }}</td>
+                </tr>
+                <tr>
+                    <td>user id: </td>
+                    <td>{{ person.google_id }}</td>
+                </tr>
+                <tr>
+                    <td>api key: </td>
+                    <td>{{ person.api_key }}</td>
                 </tr>
             </table>
         </div>

@@ -134,7 +134,7 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
 
     def testAddConfigFile(self):
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
-        entity, private_key = person.add_new_entity(name="elephant")
+        entity = person.add_new_entity(name="elephant")
 
         config_file = person.add_config_file("test", "a whole bunch of text", "a/path/file.txt")
 
@@ -154,7 +154,7 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
 
     def testRemoveConfigFile(self):
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
-        entity, private_key = person.add_new_entity(name="elephant")
+        entity = person.add_new_entity(name="elephant")
 
         config_file = person.add_config_file("test", "a whole bunch of text", "a/path/file.txt")
 
@@ -174,10 +174,10 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
     def test_signing(self):
 
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
-        entity, private_pem = person.add_new_entity(name="elephant")
+        entity = person.add_new_entity(name="elephant")
         url = "https://augment00.org/entity/12345678"
         salt = "asdfghjkl"
-        sig = keys.sign_url(url, private_pem, salt)
+        sig = keys.sign_url(url, entity.private_key, salt)
         mine = keys.verify_sig(url, sig, entity.public_key, salt)
         self.assertTrue(mine)
 
@@ -185,10 +185,10 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
     def test_signing_fails(self):
 
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
-        entity, private_pem = person.add_new_entity(name="elephant")
+        entity = person.add_new_entity(name="elephant")
         url = "https://augment00.org/entity/12345678"
         salt = "asdfghjkl"
-        sig = keys.sign_url(url, private_pem, salt)
+        sig = keys.sign_url(url, entity.private_key, salt)
         mine = keys.verify_sig(url, sig, entity.public_key, "123456")
         self.assertFalse(mine)
 
@@ -196,7 +196,7 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
     def test_entity_json(self):
 
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
-        entity, private_pem = person.add_new_entity(name="elephant")
+        entity = person.add_new_entity(name="elephant")
         config_file = person.add_config_file("test", "A whole bunch of text\nwith a line return", "a/path/file.txt")
         entity.add_config_file(config_file)
         as_json = entity.as_json()
@@ -212,7 +212,7 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
     def test_config_templating(self):
 
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
-        entity, private_pem = person.add_new_entity(name="elephant")
+        entity = person.add_new_entity(name="elephant")
         config_file = person.add_config_file("test", "A whole bunch of text\nwith uuid {{ uuid }}", "a/path/file.txt")
         entity.add_config_file(config_file)
         as_json = entity.as_json()
@@ -227,7 +227,7 @@ class ModelsTestCaseWithoutConsistancy(unittest.TestCase):
     def test_config_firebase(self):
 
         person = Person.create("paul", "paul@glowinthedark.co.uk", "123456789")
-        entity, private_pem = person.add_new_entity(name="elephant")
+        entity = person.add_new_entity(name="elephant")
         config_file = person.add_config_file("test", '{"firebase": "{{ firebase }}"}', "a/path/file.txt")
         entity.add_config_file(config_file)
         as_json = entity.as_json()

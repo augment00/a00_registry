@@ -19,7 +19,7 @@ from models import Person, Entity, ConfigFile
 from forms import PersonForm, EntityForm, ConfigForm, CommandForm
 from shared import render_login_template, with_person
 from augment_exceptions import NonUniqueException
-from utilities import firebase, aiven
+from utilities import firebase
 
 
 @app.route('/person/new', methods=["POST", "GET"])
@@ -70,6 +70,13 @@ def update_person(person=None):
         return render_login_template("account-form.html", form=form)
 
 
+@app.route('/person/regenerate-apikey', methods=["POST"])
+@with_person
+def regenerate_api_key(person=None):
+    person.reset_api_key()
+    flash("Your API Key has been regenerated", "info")
+    return redirect("/")
+
 
 @app.route('/person/delete', methods=["POST"])
 @with_person
@@ -89,13 +96,13 @@ def new_entity(person=None):
 
     if request.method == 'POST':
 
-        entity, private_key = person.add_new_entity(name=form.name.data,
-                                       description=form.description.data
+        entity = person.add_new_entity(name=form.name.data,
+                                       description=form.description.data,
+                                       config = [ndb.Key("ConfigFile", k, parent=person.key) for k in form.configs.data]
                                        )
-        aiven.add_influx_password(entity)
+
         entity_uuid = entity.key.id()
-        memcache.add(entity_uuid, private_key, time=5, namespace="private")
-        flash("Take a copy of the credentials below as you won't see them again", "info")
+        flash("Your new entity has been created", "info")
         return redirect("/entity/%s" % entity_uuid)
     else:
         return render_login_template("entity-form.html", form=form)
@@ -124,50 +131,18 @@ def entity(entity_uuid, person=None):
     if entity is None:
         return rsp
 
-    private_key = memcache.get(entity_uuid, namespace="private")
-    path = "/api/config/%s" % entity.key.id()
-    base = URL_BASE
-    if private_key is not None:
-        creds_json = {
-            "entity_uuid": entity_uuid,
-            "private_key": private_key,
-            "url": "%s%s" % (base, path)
-        }
-        creds = json.dumps(creds_json, indent=4)
-    else:
-        creds = None
+    creds_json = {
+        "entity_uuid": entity_uuid,
+        "private_key": entity.private_key,
+        "public_key": entity.public_key,
+        "url": "%s/api/config/%s" % (URL_BASE, entity_uuid)
+    }
 
+    creds = json.dumps(creds_json, indent=4)
     tag = entity_uuid[:8]
 
     return render_login_template("entity.html", entity=entity, person=person, creds=creds, tag=tag)
 
-
-@app.route('/entity/<entity_uuid>/token', methods=["GET"])
-@with_person
-def entity_token(entity_uuid, person=None):
-
-    entity, rsp = _allowed_entity(entity_uuid, person)
-    if entity is None:
-        return rsp
-
-    private_key = memcache.get(entity_uuid, namespace="private")
-    path = "/api/config/%s" % entity.key.id()
-    base = URL_BASE
-    if private_key is not None:
-        creds_json = {
-            "entity_uuid": entity_uuid,
-            "private_key": private_key,
-            "url": "%s%s" % (base, path)
-        }
-        creds = json.dumps(creds_json, indent=4)
-    else:
-        creds = None
-
-    tag = entity_uuid[:8]
-
-    firebase_token = firebase.create_custom_token(entity_uuid)
-
-    return render_login_template("entity.html", entity=entity, person=person, creds=creds, tag=tag, token=firebase_token)
 
 
 @app.route('/entity/<entity_uuid>/update', methods=["POST", "GET"])
@@ -183,6 +158,7 @@ def update_entity(entity_uuid, person=None):
                       description=entity.description,
                       serial=entity.serial
                       )
+
     form.configs.choices = [(c.key.id(), c.name) for c in person.configs]
 
     if request.method == 'POST':
@@ -218,7 +194,7 @@ def regenerate(entity_uuid, person=None):
         return rsp
 
     private_key = entity.regenerate_keys()
-    aiven.add_influx_password(entity)
+    # aiven.add_influx_password(entity)
     memcache.add(entity_uuid, private_key, time=5, namespace="private")
     flash("Take a copy of the credentials below as you won't see them again", "info")
     return redirect("/entity/%s" % entity_uuid)
