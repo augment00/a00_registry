@@ -133,10 +133,11 @@ def send_command(entity_uuid, person=None):
 
     as_json = request.get_json(force=True)
 
-    if not frozenset(as_json.keys()) == {"method", "params"}:
+    if not frozenset(as_json["rpc"].keys()) == {"method", "params"}:
         return ("Malformed request", 400, {})
 
-    firebase.send_message(entity_uuid, command_json=as_json)
+    firebase_service = firebase.get_service()
+    firebase_service.send_message(entity_uuid, command_json=as_json["rpc"])
 
     return "ok", 200
 

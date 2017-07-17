@@ -5,6 +5,22 @@ import datetime
 import httplib2
 
 from google.appengine.api import app_identity
+from mode import *
+
+
+def get_service():
+
+    mode = application_mode()
+    if mode == APPLICATION_MODE_PRODUCTION:
+        firebase_service = FirebaseService()
+    elif mode == APPLICATION_MODE_TEST:
+        print "Using dummy firebase service"
+        firebase_service = DummyFirebaseService()
+    else:
+        print "Using dummy firebase service"
+        firebase_service = DummyFirebaseService()
+
+    return firebase_service
 
 
 from constants import FIREBASE_URL
@@ -50,47 +66,57 @@ def create_custom_token(uid, valid_minutes=60):
 
 
 
-def _get_http():
-    from oauth2client.client import GoogleCredentials
-    # from oauth2client.client import GoogleCredentials
-    """Provides an authed http object."""
-    http = httplib2.Http()
-    # Use application default credentials to make the Firebase calls
-    # https://firebase.google.com/docs/reference/rest/database/user-auth
-    creds = GoogleCredentials.get_application_default().create_scoped(_FIREBASE_SCOPES)
-    creds.authorize(http)
-    return http
+class DummyFirebaseService(object):
+
+    def send_message(self, u_id, command_json=None):
+
+        return None
+
+
+class FirebaseService(object):
+
+
+    def _get_http(self):
+        from oauth2client.client import GoogleCredentials
+        # from oauth2client.client import GoogleCredentials
+        """Provides an authed http object."""
+        http = httplib2.Http()
+        # Use application default credentials to make the Firebase calls
+        # https://firebase.google.com/docs/reference/rest/database/user-auth
+        creds = GoogleCredentials.get_application_default().create_scoped(_FIREBASE_SCOPES)
+        creds.authorize(http)
+        return http
 
 
 
-def firebase_put(path, value=None):
-    """Writes data to Firebase.
+    def firebase_put(self, path, value=None):
+        """Writes data to Firebase.
 
-    An HTTP PUT writes an entire object at the given database path. Updates to
-    fields cannot be performed without overwriting the entire object
+        An HTTP PUT writes an entire object at the given database path. Updates to
+        fields cannot be performed without overwriting the entire object
 
-    Args:
-        path - the url to the Firebase object to write.
-        value - a json string.
-    """
-    response, content = _get_http().request(path, method='PUT', body=value)
-    return json.loads(content)
+        Args:
+            path - the url to the Firebase object to write.
+            value - a json string.
+        """
+        response, content = self._get_http().request(path, method='PUT', body=value)
+        return json.loads(content)
 
 
 
-def send_message(u_id, command_json=None):
+    def send_message(self, u_id, command_json=None):
 
-    url = '{}/channels/{}.json'.format(FIREBASE_URL, u_id)
+        url = '{}/channels/{}.json'.format(FIREBASE_URL, u_id)
 
-    dt = datetime.datetime.now()
-    ts = dt.strftime("%Y%m%d-%H%M%S-%f")
-    message_json = {
-        ts: command_json
-    }
+        dt = datetime.datetime.now()
+        ts = dt.strftime("%Y%m%d-%H%M%S-%f")
+        message_json = {
+            ts: command_json
+        }
 
-    message =  json.dumps(message_json, indent=4)
+        message =  json.dumps(message_json, indent=4)
 
-    if message:
-        return _get_http().request(url, 'PATCH', body=message)
-    else:
-        return _get_http().request(url, 'DELETE')
+        if message:
+            return self._get_http().request(url, 'PATCH', body=message)
+        else:
+            return self._get_http().request(url, 'DELETE')

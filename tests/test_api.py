@@ -7,8 +7,6 @@ from google.appengine.ext import testbed
 
 from models import Person, Entity, Name
 
-
-
 import api
 
 
@@ -87,19 +85,16 @@ class ApiTestCase(unittest.TestCase):
         data = {
             "user_id": person.get_google_id(),
             "api_key": person.api_key,
-            "name": "test",
-            "value": "fishfinger"
+            "rpc":{
+                "method": "test",
+                "params": ["fishfinger"]
+            }
         }
 
-        url = "/api/entity/%s/add-value" % entity_uuid
+        url = "/api/entity/%s/send-command" % entity_uuid
 
         rsp = self.app.post(url, data=json.dumps(data))
         print rsp.status_code
         self.assertTrue(rsp.status_code == 200)
-
-        entity = Entity.get_by_id(entity_uuid)
-
-        self.assertEqual(entity.template_values["test"], "fishfinger")
-
 
 
