@@ -134,6 +134,7 @@ def send_command(entity_uuid, person=None):
     as_json = request.get_json(force=True)
 
     if not frozenset(as_json["rpc"].keys()) == {"method", "params"}:
+
         return ("Malformed request", 400, {})
 
     firebase_service = firebase.get_service()

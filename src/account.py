@@ -219,7 +219,8 @@ def command(entity_uuid, person=None):
             flash("Your command wasn't valid json", "error")
             return render_login_template("command-form.html", form=form, entity=entity)
 
-        firebase.send_message(entity_uuid, command_json=as_json)
+        firebase_service = firebase.get_service()
+        firebase_service.send_message(entity_uuid, command_json=as_json)
 
         flash("Your command has been sent", "info")
         return redirect("/entity/%s" % entity_uuid)
