@@ -193,7 +193,7 @@ class Entity(ndb.Model):
     serial = ndb.StringProperty()
     config = ndb.KeyProperty(ConfigFile, repeated=True)
     template_values = ndb.JsonProperty(default={})
-    schema = ndb.JsonProperty()
+    schema = ndb.JsonProperty(default={})
 
 
     def as_json(self):

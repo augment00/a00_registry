@@ -86,17 +86,8 @@ def api_token(entity_uuid, nonce, entity=None):
     return json.dumps(data)
 
 
-@app.route('/api/new-entity', methods=["POST"])
-@with_api_key
-def new_entity(person=None):
-    as_json = request.get_json(force=True)
-    entity = Entity.create(person.key, name=as_json["name"])
-    entity_uuid = entity.key.id()
-    return entity_uuid, 201
-
-
 @app.route('/api/schema/<entity_uuid>', methods=["POST"])
-def entity_schema(entity_uuid):
+def set_entity_schema(entity_uuid):
     key = ndb.Key("Entity", entity_uuid)
     entity = key.get()
     if entity is None:
@@ -106,6 +97,35 @@ def entity_schema(entity_uuid):
         entity.schema = as_json
         entity.put()
         return "ok", 200
+
+
+############################################################
+
+
+
+@app.route('/api/new-entity', methods=["POST"])
+@with_api_key
+def new_entity(person=None):
+    as_json = request.get_json(force=True)
+    entity = Entity.create(person.key, name=as_json["name"])
+    entity_uuid = entity.key.id()
+    return entity_uuid, 201
+
+
+@app.route('/api/entity/<entity_uuid>/schema', methods=["GET"])
+@with_api_key
+def get_entity_schema(entity_uuid, person=None):
+
+    key = ndb.Key("Entity", entity_uuid)
+    entity = key.get()
+
+    if entity is None:
+        return "not found", 403
+
+    if entity.person_key != person.key:
+        return ("Permission denied", 401, {})
+
+    return json.dumps(entity.schema), 200
 
 
 @app.route('/api/entity/<entity_uuid>/add-value', methods=["POST"])
