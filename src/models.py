@@ -209,6 +209,7 @@ class Entity(ndb.Model):
             "config": [c.get().as_json(self) for c in self.config]
         }
 
+
     @property
     def config_files(self):
         configs = [c.get() for c in self.config]

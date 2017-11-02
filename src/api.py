@@ -112,9 +112,9 @@ def new_entity(person=None):
     return entity_uuid, 201
 
 
-@app.route('/api/entity/<entity_uuid>/schema', methods=["GET"])
+@app.route('/api/entity/<entity_uuid>', methods=["GET"])
 @with_api_key
-def get_entity_schema(entity_uuid, person=None):
+def get_entity_info(entity_uuid, person=None):
 
     key = ndb.Key("Entity", entity_uuid)
     entity = key.get()
@@ -125,7 +125,7 @@ def get_entity_schema(entity_uuid, person=None):
     if entity.person_key != person.key:
         return ("Permission denied", 401, {})
 
-    return json.dumps(entity.schema), 200
+    return json.dumps(entity.as_json()), 200
 
 
 @app.route('/api/entity/<entity_uuid>/add-value', methods=["POST"])
